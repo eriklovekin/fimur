@@ -22,6 +22,8 @@ esp-backtrace = { version = "0.18.1", features = [
   "panic-handler",
 ] }
 esp-println = { version = "0.16.1", features = ["defmt-espflash", "esp32c6"] }
+smart-leds = "0.4.0"
+esp-hal-smartled = "0.17.0"
 
 
 [profile.dev]
