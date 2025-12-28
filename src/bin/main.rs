@@ -106,8 +106,20 @@ fn main() -> ! {
         i2c.write_read(ENCODER_ADDRESS, &[ANG_L_REGISTER], &mut read_buffer)
             .expect("failed to write_read i2c");
 
-        info!("Low bit: {} | High bit: {} | ", read_buffer[0], read_buffer[1]);
+        let angle_raw: u16 = 
+            ((((read_buffer[0] as u16) << 6)) |
+            (((read_buffer[1] >> 2) & 0b0011_1111) as u16)) &
+            0b0011_1111_1111_1111;
         
+        let angle_deg: u32 = (angle_raw as u32)*360/16384;
+
+        info!("High register: {} | Low register: {} | Raw Angle: {} | Deg Angle: {}", 
+            read_buffer[0], 
+            read_buffer[1], 
+            angle_raw, 
+            angle_deg
+        );
+
         let tmp = color.r;
         color.r = color.b;
         color.b = color.g;
