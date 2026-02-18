@@ -8,30 +8,30 @@ pub enum Bank {
 }
 
 pub trait RegisterBank {
-    const bank: Bank;
+    const BANK: Bank;
 }
 
 pub struct Bank0;
 impl RegisterBank for Bank0 {
-    const bank: Bank = Bank::Bank0;
+    const BANK: Bank = Bank::Bank0;
 }
 
 pub struct Bank1;
 impl RegisterBank for Bank1 {
-    const bank: Bank = Bank::Bank1;
+    const BANK: Bank = Bank::Bank1;
 }
 
 pub struct Bank2;
 impl RegisterBank for Bank2 {
-    const bank: Bank = Bank::Bank2;
+    const BANK: Bank = Bank::Bank2;
 }
 
 pub struct Bank3;
 impl RegisterBank for Bank3 {
-    const bank: Bank = Bank::Bank3;
+    const BANK: Bank = Bank::Bank3;
 }
 
-struct Register<B: RegisterBank> {
+pub struct Register<B: RegisterBank> {
     pub name: &'static str,
     pub addr: u8,
     _bank: PhantomData<B>,
@@ -48,4 +48,6 @@ impl<B: RegisterBank> Register<B> {
 }
 
 pub mod bank0;
-
+pub mod bank1;
+pub mod bank2;
+pub mod bank3;
