@@ -1,7 +1,8 @@
 [workspace]
 members = [
     "firmware",
-    "icm20948", "imu-traits",
+    "icm20948", 
+    "imu-traits",
 ]
 resolver = "3"
 

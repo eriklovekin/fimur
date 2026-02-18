@@ -666,6 +666,8 @@ dependencies = [
  "esp-hal",
  "esp-hal-smartled",
  "esp-println",
+ "icm20948",
+ "imu-traits",
  "smart-leds",
 ]
 
