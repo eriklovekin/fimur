@@ -12,12 +12,11 @@ def find_esp32_port():
     ports = serial.tools.list_ports.comports()
     for port in ports:
         mfr = (port.manufacturer or "").lower()
-        if any(name in mfr for name in ['silicon labs', 'Espressif', 'cp210', 'ch340']):
+        if any(name in mfr for name in ['silicon labs', 'espressif', 'cp210', 'ch340']):
             return port.device
     return ports[0].device if ports else None
 
-# PORT = find_esp32_port()
-PORT = "/dev/ttyACM1"
+PORT = find_esp32_port()
 BAUD = 115200
 WINDOW_SIZE = 200
 
