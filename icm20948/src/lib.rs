@@ -74,3 +74,9 @@ where
     }
 }
 
+impl<I2C> Icm20948<I2C> {
+    pub fn new(i2c: I2C, address: u8) -> Self {
+        Self {i2c, address}
+    }
+}
+

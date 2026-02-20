@@ -7,7 +7,10 @@
 )]
 #![deny(clippy::large_stack_frames)]
 
-use defmt::info;
+use defmt::{
+    info,
+    panic
+};
 use esp_hal::clock::CpuClock;
 use esp_hal::main;
 use esp_hal::rmt::Rmt;
@@ -33,19 +36,36 @@ esp_bootloader_esp_idf::esp_app_desc!();
 )]
 #[main]
 fn main() -> ! {
-    info!("Startup");
+    info!("startup");
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    info!("debug 0");
     let _peripherals = esp_hal::init(config);
+    info!("debug 1");
     let rmt = Rmt::new(_peripherals.RMT, Rate::from_mhz(80)).unwrap();
 
+    info!("debug 2");
     let i2c_config = Config::default();
     // let io = Io::new(peripherals.IO_MUX);
+    info!("debug 3");
     let i2c = I2c::new(_peripherals.I2C0, i2c_config)
         .expect("Failed to initialize i2c")
         .with_sda(_peripherals.GPIO2)
         .with_scl(_peripherals.GPIO3);
-
+    info!("debug 4");
+    let mut imu = Icm20948::new(i2c,0x69);
+    info!("debug 5");
+    match imu.init() {
+        Ok(_) => {
+            info!("Init succeeded!");
+        }
+        Err(e) => {
+            info!("Init failed: {}", defmt::Debug2Format(&e));
+            panic!("Manual panic after init failure");
+        }
+    }
+    // imu.init().expect("failed to initialze imu");
+    info!("debug 6");
     // let system = peripherals.SYSTEM.split();
     // let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
     // let mut delay = Delay::new(&clocks);
@@ -56,13 +76,17 @@ fn main() -> ! {
     // imu.init(&mut imu_delay).unwrap();
 
     let mut led_buf = smart_led_buffer!(1);
+    info!("debug 7");
     let mut led = SmartLedsAdapter::new(rmt.channel0, _peripherals.GPIO8, &mut led_buf);
+    info!("debug 8");
     const LEVEL: u8 = 10;
+    info!("debug 9");
     let mut color = RGB8::default();
+    info!("debug 10");
     color.r = LEVEL;
 
     // let mut read_buffer = [0u8; 22];
-
+    info!("reading imu data");
     loop {
         led.write([color].into_iter()).unwrap();
         let delay_start = Instant::now();
@@ -70,6 +94,20 @@ fn main() -> ! {
 
         // i2c.write_read(ENCODER_ADDRESS, &[ANG_L_REGISTER], &mut read_buffer)
         //     .expect("failed to write_read i2c");
+        // if let Ok((ax,ay,az)) = imu.read_accelerometer() {
+        //     info!("Accel: x={}, y={}, z={}",ax,ay,az);
+        // }
+        //         if let Ok((gx,gy,gz)) = imu.read_gyroscope() {
+        //     info!("Gyro: x={}, y={}, z={}",gx,gy,gz);
+        // }
+        let (ax, ay, az) = imu.read_accelerometer()
+            .expect("failed to read accelerometer");
+        info!("Accel: x={}, y={}, z={}",ax,ay,az);
+        
+        let (gx, gy, gz) = imu.read_gyroscope()
+            .expect("failed to read gyroscope");
+        info!("Gyro: x={}, y={}, z={}",gx,gy,gz);
+        
 
         // let angle_raw: u16 = 
         //     ((((read_buffer[0] as u16) << 6)) |
