@@ -4,8 +4,17 @@ pub trait Imu {
     type Error;
 
     fn init(&mut self) -> Result<(), Self::Error>;
-    fn read_accelerometer(&mut self) -> Result<(f32, f32, f32), Self::Error>;
-    fn read_gyroscope(&mut self) -> Result<(f32, f32, f32), Self::Error>;
+    
+    fn read_accelerometer_g(&mut self) -> Result<(f32, f32, f32), Self::Error>;
+    fn read_accelerometer_mps2(&mut self) -> Result<(f32, f32, f32), Self::Error>;
+    fn read_accelerometer_units(&mut self,raw_to_units: f32) -> Result<(f32, f32, f32), Self::Error>;
+    fn read_accelerometer_raw(&mut self) -> Result<(f32, f32, f32), Self::Error>;
+    
+    fn read_gyroscope_rps(&mut self) -> Result<(f32, f32, f32), Self::Error>;
+    fn read_gyroscope_dps(&mut self) -> Result<(f32, f32, f32), Self::Error>;
+    fn read_gyroscope_units(&mut self,raw_to_units: f32) -> Result<(f32, f32, f32), Self::Error>;
+    fn read_gyroscope_raw(&mut self) -> Result<(f32, f32, f32), Self::Error>;
+    
     fn attitude_from_direct_integration(&mut self, attitude: (f32,f32,f32), dt_us: u64) -> Result<(f32,f32,f32), Self::Error>;
 }
 

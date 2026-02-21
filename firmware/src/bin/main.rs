@@ -40,7 +40,7 @@ fn main() -> ! {
     info!("startup");
 
     let mut timestamp =0u64;
-    let loopDurationMicros = 20; 
+    let loop_duration_us = 200; 
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let _peripherals = esp_hal::init(config);
@@ -82,15 +82,15 @@ fn main() -> ! {
     loop {
         led.write([color].into_iter()).unwrap();
         let delay_start = Instant::now();
-        while delay_start.elapsed() < Duration::from_millis(loopDurationMicros) {}
+        while delay_start.elapsed() < Duration::from_micros(loop_duration_us) {}
 
-        let (ax, ay, az) = imu.read_accelerometer()
+        let (ax, ay, az) = imu.read_accelerometer_g()
             .expect("failed to read accelerometer");
         
-        let (gx, gy, gz) = imu.read_gyroscope()
+        let (gx, gy, gz) = imu.read_gyroscope_dps()
             .expect("failed to read gyroscope");
 
-        (phi, theta, psi) = imu.attitude_from_direct_integration((phi, theta, psi), loopDurationMicros)
+        (phi, theta, psi) = imu.attitude_from_direct_integration((phi, theta, psi), loop_duration_us)
             .expect("failed to calculate attitude by integration");
 
         // println!("{},{},{},{},{},{},{}", 
@@ -103,6 +103,6 @@ fn main() -> ! {
         color.b = color.g;
         color.g = tmp;
 
-        timestamp += loopDurationMicros;
+        timestamp += loop_duration_us;
     }
 }
