@@ -72,7 +72,15 @@ where
         let z = i16::from_be_bytes([buf[4], buf[5]]) as f32;
         Ok((x,y,z))    
     }
+
+    fn attitude_from_direct_integration(&mut self, attitude: (f32,f32,f32), dt_us: u64) -> Result<(f32,f32,f32), Self::Error> {
+        let (d_phi_dt, d_theta_dt, d_psi_dt) = self.read_gyroscope()?;
+        Ok((attitude.0 + d_phi_dt   *(dt_us as f32) / 1e6,
+            attitude.1 + d_theta_dt *(dt_us as f32) / 1e6,
+            attitude.2 + d_psi_dt   *(dt_us as f32) / 1e6))
+    }
 }
+
 
 impl<I2C> Icm20948<I2C> {
     pub fn new(i2c: I2C, address: u8) -> Self {

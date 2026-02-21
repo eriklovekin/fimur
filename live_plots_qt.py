@@ -30,9 +30,12 @@ accel_z = deque(maxlen=WINDOW_SIZE)
 gyro_x = deque(maxlen=WINDOW_SIZE)
 gyro_y = deque(maxlen=WINDOW_SIZE)
 gyro_z = deque(maxlen=WINDOW_SIZE)
+attitude_x = deque(maxlen=WINDOW_SIZE)
+attitude_y = deque(maxlen=WINDOW_SIZE)
+attitude_z = deque(maxlen=WINDOW_SIZE)
 
-# Create application - CORRECTED
-app = QtWidgets.QApplication(sys.argv)  # ← Use QtWidgets
+# Create application
+app = QtWidgets.QApplication(sys.argv)
 
 # Create window
 win = pg.GraphicsLayoutWidget(show=True, title="Live IMU Data")
@@ -55,19 +58,31 @@ curve_gx = p2.plot(pen='r', name='X')
 curve_gy = p2.plot(pen='g', name='Y')
 curve_gz = p2.plot(pen='b', name='Z')
 
+win.nextRow()
+
+p2 = win.addPlot(title="Attitude")
+p2.setLabel('left', 'Angular position', units='raw')
+p2.addLegend()
+curve_attx = p2.plot(pen='r', name='X')
+curve_atty = p2.plot(pen='g', name='Y')
+curve_attz = p2.plot(pen='b', name='Z')
+
 def update():
     """Read serial and update plots"""
     try:
         line = ser.readline().decode('utf-8', errors='ignore').strip()
         if line and line[0].isdigit():
             values = line.split(',')
-            if len(values) == 7:
-                accel_x.append(int(values[1]))
-                accel_y.append(int(values[2]))
-                accel_z.append(int(values[3]))
-                gyro_x.append(int(values[4]))
-                gyro_y.append(int(values[5]))
-                gyro_z.append(int(values[6]))
+            if len(values) == 10:
+                accel_x.append(float(values[1]))
+                accel_y.append(float(values[2]))
+                accel_z.append(float(values[3]))
+                gyro_x.append(float(values[4]))
+                gyro_y.append(float(values[5]))
+                gyro_z.append(float(values[6]))
+                attitude_x.append(float(values[7]))
+                attitude_y.append(float(values[8]))
+                attitude_z.append(float(values[9]))
                 
                 # Update curves
                 curve_ax.setData(accel_x)
@@ -76,6 +91,9 @@ def update():
                 curve_gx.setData(gyro_x)
                 curve_gy.setData(gyro_y)
                 curve_gz.setData(gyro_z)
+                curve_attx.setData(attitude_x)
+                curve_atty.setData(attitude_y)
+                curve_attz.setData(attitude_z)
     except Exception as e:
         pass
 

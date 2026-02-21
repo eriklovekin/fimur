@@ -61,6 +61,8 @@ fn main() -> ! {
             panic!("Manual panic after init failure");
         }
     }
+    let (mut phi, mut theta, mut psi): (f32, f32, f32) = (0., 0., 0.);
+    
     // let system = peripherals.SYSTEM.split();
     // let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
     // let mut delay = Delay::new(&clocks);
@@ -88,8 +90,13 @@ fn main() -> ! {
         let (gx, gy, gz) = imu.read_gyroscope()
             .expect("failed to read gyroscope");
 
-        println!("{},{},{},{},{},{},{}", 
-                    timestamp, ax, ay, az, gx, gy, gz);
+        (phi, theta, psi) = imu.attitude_from_direct_integration((phi, theta, psi), loopDurationMicros)
+            .expect("failed to calculate attitude by integration");
+
+        // println!("{},{},{},{},{},{},{}", 
+        //     timestamp, ax, ay, az, gx, gy, gz);
+        println!("{},{},{},{},{},{},{},{},{},{}", 
+                    timestamp, ax, ay, az, gx, gy, gz, phi, theta, psi);
         
         let tmp = color.r;
         color.r = color.b;
