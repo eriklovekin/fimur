@@ -61,7 +61,12 @@ fn main() -> ! {
             panic!("Manual panic after init failure");
         }
     }
+
+    let (mut vx, mut vy, mut vz): (f32, f32, f32) = (0., 0., 0.);
+    let (rx, ry, rz): (f32, f32, f32) = (0., 0., 0.);
     let (mut phi, mut theta, mut psi): (f32, f32, f32) = (0., 0., 0.);
+    // let gyro_scale: u8 = imu.get_gyroscope_scale()
+    //     .expect("unable to read imu gyro scale");
     
     // let system = peripherals.SYSTEM.split();
     // let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
@@ -84,19 +89,20 @@ fn main() -> ! {
         let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_micros(loop_duration_us) {}
 
-        let (ax, ay, az) = imu.read_accelerometer_g()
+        let (ax, ay, az) = imu.read_accelerometer_mps2()
             .expect("failed to read accelerometer");
         
         let (gx, gy, gz) = imu.read_gyroscope_dps()
             .expect("failed to read gyroscope");
 
+        (vx, vy, vz) = imu.velocity_from_direct_integration((vx, vy, vz), loop_duration_us)
+            .expect("failed to calculate velocity by integration");
         (phi, theta, psi) = imu.attitude_from_direct_integration((phi, theta, psi), loop_duration_us)
             .expect("failed to calculate attitude by integration");
 
-        // println!("{},{},{},{},{},{},{}", 
-        //     timestamp, ax, ay, az, gx, gy, gz);
-        println!("{},{},{},{},{},{},{},{},{},{}", 
-                    timestamp, ax, ay, az, gx, gy, gz, phi, theta, psi);
+
+        println!("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}", 
+                    timestamp, ax, ay, az, vx, vy, vz, rx, ry, rz, gx, gy, gz, phi, theta, psi);
         
         let tmp = color.r;
         color.r = color.b;
