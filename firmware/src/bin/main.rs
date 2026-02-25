@@ -62,8 +62,8 @@ fn main() -> ! {
         }
     }
 
-    let (mut vx, mut vy, mut vz): (f32, f32, f32) = (0., 0., 0.);
-    let (rx, ry, rz): (f32, f32, f32) = (0., 0., 0.);
+    let (mut v_xB, mut v_yB, mut v_zB): (f32, f32, f32) = (0., 0., 0.);
+    let (r_xB, r_yB, r_zB): (f32, f32, f32) = (0., 0., 0.);
     let (mut phi, mut theta, mut psi): (f32, f32, f32) = (0., 0., 0.);
     // let gyro_scale: u8 = imu.get_gyroscope_scale()
     //     .expect("unable to read imu gyro scale");
@@ -89,20 +89,20 @@ fn main() -> ! {
         let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_micros(loop_duration_us) {}
 
-        let (ax, ay, az) = imu.read_accelerometer_mps2()
+        let (a_xB, a_yB, a_zB) = imu.read_accelerometer_mps2()
             .expect("failed to read accelerometer");
         
-        let (gx, gy, gz) = imu.read_gyroscope_dps()
+        let (w_xB, w_yB, w_zB) = imu.read_gyroscope_dps()
             .expect("failed to read gyroscope");
 
-        (vx, vy, vz) = imu.velocity_from_direct_integration((vx, vy, vz), loop_duration_us)
+        (v_xB, v_yB, v_zB) = imu.velocity_from_direct_integration((v_xB, v_yB, v_zB), loop_duration_us)
             .expect("failed to calculate velocity by integration");
         (phi, theta, psi) = imu.attitude_from_direct_integration((phi, theta, psi), loop_duration_us)
             .expect("failed to calculate attitude by integration");
 
 
         println!("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}", 
-                    timestamp, ax, ay, az, vx, vy, vz, rx, ry, rz, gx, gy, gz, phi, theta, psi);
+                    timestamp, a_xB, a_yB, a_zB, v_xB, v_yB, v_zB, r_xB, r_yB, r_zB, w_xB, w_yB, w_zB, phi, theta, psi);
         
         let tmp = color.r;
         color.r = color.b;

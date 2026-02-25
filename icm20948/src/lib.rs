@@ -4,9 +4,16 @@ use embedded_hal::{
     i2c::I2c,
     // delay
 };
-use imu_traits::clear_bits;
+use imu_traits::ImuWithAdustableScale;
 use imu_traits::{
     Imu
+};
+
+use libm::{
+    sinf,
+    cosf,
+    atan2f,
+    sqrtf
 };
 
 mod registers;
@@ -16,6 +23,7 @@ use registers::bank2::*;
 // use registers::bank3::*;
 
 pub mod constants;
+pub mod error;
 
 pub struct Icm20948<I2C> {
     i2c: I2C,
@@ -32,7 +40,7 @@ impl<I2C, E> Imu for Icm20948<I2C>
 where 
     I2C: I2c<Error = E>,
 {
-    type Error = E;
+    type Error = error::ImuError<E>;
 
     fn init(&mut self) -> Result<(), Self::Error> {
         self.i2c.write(self.address, &[PWR_MGMT_1.addr,0x09])?;
@@ -87,6 +95,28 @@ where
         Ok((raw.0*raw_to_units,raw.1*raw_to_units,raw.2*raw_to_units))
     }
 
+    fn attitude_from_direct_integration(&mut self, attitude: (f32,f32,f32), dt_us: u64) -> Result<(f32,f32,f32), Self::Error> {
+        let (d_phi_dt, d_theta_dt, d_psi_dt) = self.read_gyroscope_dps()?;
+        // Ok((attitude.0 + (d_phi_dt-9.5)   * (dt_us as f32)/1e6,
+        //     attitude.1 + (d_theta_dt-4.5) * (dt_us as f32)/1e6,
+        //     attitude.2 + (d_psi_dt-0.5)   * (dt_us as f32)/1e6))
+        Ok((attitude.0 + (d_phi_dt)   * (dt_us as f32)/1e6,
+            attitude.1 + (d_theta_dt) * (dt_us as f32)/1e6,
+            attitude.2 + (d_psi_dt)   * (dt_us as f32)/1e6))
+    }
+
+    fn velocity_from_direct_integration(&mut self, velocity: (f32,f32,f32), dt_us: u64) -> Result<(f32,f32,f32), Self::Error> {
+        let (ax, ay, az) = self.read_accelerometer_mps2()?;
+        Ok((velocity.0 + (ax) * (dt_us as f32)/1e6,
+            velocity.1 + (ay) * (dt_us as f32)/1e6,
+            velocity.2 + (az) * (dt_us as f32)/1e6))
+    }
+}
+
+impl<I2C, E> ImuWithAdustableScale for Icm20948<I2C>
+where 
+    I2C: I2c<Error = E>,
+{
     // fn set_accelerometer_scale(&mut self, scale: i8) -> Result<(), Self::Error> {
     //     let mut config= [0u8; 8];
     //     self.i2c.write_read(self.address,&[ACCEL_CONFIG.addr],&mut config)?;
@@ -117,48 +147,69 @@ where
     //     }
     // }
 
-    // fn set_gyroscope_scale(&mut self, scale: i8) -> Result<(), Self::Error> {
-    //     let mut config= [0u8; 8];
-    //     self.i2c.write_read(self.address,&[GYRO_CONFIG_1.addr],&mut config)?;
-    //     config[0] = clear_bits(config[0],2,2); 
-    //     match scale {
-    //         0 => {config[0] |= 00 << 1;}
-    //         1 => {config[0] |= 01 << 1;}
-    //         2 => {config[0] |= 10 << 1;}
-    //         3 => {config[0] |= 11 << 1;}
-    //     }
-    //     self.i2c.write_read(self.address,&config,&mut config)?;
-    //     // self.i2c.write(self.address,&config);
-    //     Ok(())
-    // }
+    fn set_accelerometer_scale(&mut self, scale: i8) -> Result<(), Self::Error> {
+        let mut config= [0u8];
+        self.i2c.write_read(self.address,&[ACCEL_CONFIG.addr],&mut config)?;
+        config[0] &= !0b0000_0110;
+        match scale {
+            0 => config[0] |= 0b00 << 1,
+            1 => config[0] |= 0b01 << 1,
+            2 => config[0] |= 0b10 << 1,
+            3 => config[0] |= 0b11 << 1,
+            _ => return Err(error::ImuError::InvalidSetAccelerometerScale)
+        }
+        self.i2c.write_read(self.address,&[ACCEL_CONFIG.addr,config[0]],&mut config)?;
+        Ok(())
+    }
 
-    fn get_gyroscope_scale(&mut self) -> Result<u8, Self::Error> {
-        let mut config= [0u8; 8];
-        self.i2c.write_read(self.address,&[GYRO_CONFIG_1.addr],&mut config)?;
+    fn get_accelerometer_scale(&mut self) -> Result<u8, Self::Error> {
+        let mut config= [0u8];
+        self.i2c.write_read(self.address,&[ACCEL_CONFIG.addr],&mut config)?;
 
         match config[0] & 0b00000110 {
-            0b00000000 => Ok(0),
-            0b00000010 => Ok(1),
-            0b00000100 => Ok(2),
-            0b00000110 => Ok(3),
-            _     => Ok(4) // TODO: make this an error instead
+            0b0000_0000 => Ok(0),
+            0b0000_0010 => Ok(1),
+            0b0000_0100 => Ok(2),
+            0b0000_0110 => Ok(3),
+            _           => return Err(error::ImuError::FailedGetAccelerometerScale)
         }
     }
 
-    fn attitude_from_direct_integration(&mut self, attitude: (f32,f32,f32), dt_us: u64) -> Result<(f32,f32,f32), Self::Error> {
-        let (d_phi_dt, d_theta_dt, d_psi_dt) = self.read_gyroscope_dps()?;
-        // Ok((attitude.0 + (d_phi_dt-9.5)   * (dt_us as f32)/1e6,
-        //     attitude.1 + (d_theta_dt-4.5) * (dt_us as f32)/1e6,
-        //     attitude.2 + (d_psi_dt-0.5)   * (dt_us as f32)/1e6))
-        Ok((attitude.0 + (d_phi_dt)   * (dt_us as f32)/1e6,
-            attitude.1 + (d_theta_dt) * (dt_us as f32)/1e6,
-            attitude.2 + (d_psi_dt)   * (dt_us as f32)/1e6))
+    fn set_gyroscope_scale(&mut self, scale: i8) -> Result<(), Self::Error> {
+        let mut config= [0u8];
+        self.i2c.write_read(self.address,&[GYRO_CONFIG_1.addr],&mut config)?;
+        config[0] &= !0b0000_0110;
+        match scale {
+            0 => config[0] |= 0b00 << 1,
+            1 => config[0] |= 0b01 << 1,
+            2 => config[0] |= 0b10 << 1,
+            3 => config[0] |= 0b11 << 1,
+            _ => return Err(error::ImuError::InvalidSetGyroscopeScale)
+        }
+        self.i2c.write_read(self.address,&[GYRO_CONFIG_1.addr,config[0]],&mut config)?;
+        Ok(())
     }
 
-    fn velocity_from_direct_integration(&mut self, velocity: (f32,f32,f32), dt_us: u64) -> Result<(f32,f32,f32), Self::Error> {
-        let (ax, ay, az) = self.read_accelerometer_mps2()?;
-        Ok((velocity.0 + (ax) * (dt_us as f32)/1e6,
-            velocity.1 + (ay) * (dt_us as f32)/1e6,
-            velocity.2 + (az) * (dt_us as f32)/1e6))
+    fn get_gyroscope_scale(&mut self) -> Result<u8, Self::Error> {
+        let mut config= [0u8];
+        self.i2c.write_read(self.address,&[GYRO_CONFIG_1.addr],&mut config)?;
+
+        match config[0] & 0b00000110 {
+            0b0000_0000 => Ok(0),
+            0b0000_0010 => Ok(1),
+            0b0000_0100 => Ok(2),
+            0b0000_0110 => Ok(3),
+            _           => return Err(error::ImuError::FailedGetGyroscopeScale)
+        }
     }
+}
+
+pub fn gyro_to_quaternion(w:(f32, f32, f32), dt_us: u64) -> (f32, f32, f32, f32) {
+    let w_mag = sqrtf(w.0*w.0 + w.1*w.1 + w.2*w.2);
+    let dt_s = dt_us as f32 / 1e6;
+    let q1 = cosf(w_mag*dt_s/2.);
+    let q2 = (w.0/w_mag)*sinf(w_mag*dt_s/2.);
+    let q3 = (w.1/w_mag)*sinf(w_mag*dt_s/2.);
+    let q4 = (w.2/w_mag)*sinf(w_mag*dt_s/2.);
+    (q1, q2, q3, q4)
 }

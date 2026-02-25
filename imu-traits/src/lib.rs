@@ -72,11 +72,6 @@ pub trait Imu {
     /// because all these registers are consecutive (temperature register as well)
     fn read_gyroscope_raw(&mut self) -> Result<(f32, f32, f32), Self::Error>;
 
-    // fn set_accelerometer_scale(&mut self, scale: i8) -> Result<(), Self::Error>;
-    // fn get_accelerometer_scale(&mut self) -> Result<u8, Self::Error>;
-    // fn set_gyroscope_scale(&mut self, scale: i8) -> Result<(), Self::Error>;
-    fn get_gyroscope_scale(&mut self) -> Result<u8, Self::Error>;
-    
     /// Estimate current attitude by integrating current gyroscope measurement over specified dt.
     /// 
     /// # Parameters
@@ -116,4 +111,12 @@ pub fn clear_bits(bits: u8, position: u8, size: u8) -> Result<u8, &'static str> 
     }
     let mask: u8 = ((1<<size)-1) << position;
     Ok(bits & !mask)
+}
+
+pub trait ImuWithAdustableScale: Imu {
+    fn set_accelerometer_scale(&mut self, scale: i8) -> Result<(), Self::Error>;
+    fn get_accelerometer_scale(&mut self) -> Result<u8, Self::Error>;
+    fn set_gyroscope_scale(&mut self, scale: i8) -> Result<(), Self::Error>;
+    fn get_gyroscope_scale(&mut self) -> Result<u8, Self::Error>;
+    
 }
