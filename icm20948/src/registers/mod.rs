@@ -56,4 +56,5 @@ pub mod bank1;
 pub mod bank2;
 pub mod bank3;
 
-pub const BITSHIFT_REG_SELECT: u8 = 4;
+pub const BITSHIFT_REG_SELECT:  u8 = 4;
+pub const BITSHIFT_SCALE:       u8 = 1;

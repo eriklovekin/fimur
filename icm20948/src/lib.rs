@@ -21,7 +21,7 @@ use registers::bank0::*;
 // use registers::bank1::*;
 use registers::bank2::*;
 
-use crate::registers::BITSHIFT_REG_SELECT;
+use crate::registers::{BITSHIFT_REG_SELECT, BITSHIFT_SCALE};
 // use registers::bank3::*;
 
 pub mod constants;
@@ -127,14 +127,9 @@ where
         self.select_register_bank(ACCEL_CONFIG.get_bank())?;
         self.i2c.write_read(self.address,&[ACCEL_CONFIG.addr],&mut config)?;
         config[0] &= !0b0000_0110;
-        match scale {
-            0 => config[0] |= 0b00 << 1,
-            1 => config[0] |= 0b01 << 1,
-            2 => config[0] |= 0b10 << 1,
-            3 => config[0] |= 0b11 << 1,
-            _ => return Err(error::ImuError::InvalidSetAccelerometerScale)
-        }
-        self.i2c.write_read(self.address,&[ACCEL_CONFIG.addr,config[0]],&mut config)?;
+        config[0] |= (scale << BITSHIFT_SCALE) & 0b0000_0110;
+        
+        self.i2c.write(self.address,&[ACCEL_CONFIG.addr,config[0]])?;
         Ok(())
     }
 
@@ -142,14 +137,8 @@ where
         let mut config= [0u8];
         self.select_register_bank(ACCEL_CONFIG.get_bank())?;
         self.i2c.write_read(self.address,&[ACCEL_CONFIG.addr],&mut config)?;
-
-        match config[0] & 0b0000_0110 {
-            0b0000_0000 => Ok(0),
-            0b0000_0010 => Ok(1),
-            0b0000_0100 => Ok(2),
-            0b0000_0110 => Ok(3),
-            _           => return Err(error::ImuError::FailedGetAccelerometerScale)
-        }
+        let scale = (config[0] & 0b0000_0110) >> BITSHIFT_SCALE;
+        Ok(scale)
     }
 
     fn set_gyroscope_scale(&mut self, scale: u8) -> Result<(), Self::Error> {
@@ -160,7 +149,7 @@ where
         self.select_register_bank(GYRO_CONFIG_1.get_bank())?;
         self.i2c.write_read(self.address,&[GYRO_CONFIG_1.addr],&mut config)?;
         config[0] &= !0b0000_0110;
-        config[0] |= (scale << 1) & 0b0000_0110;
+        config[0] |= (scale << BITSHIFT_SCALE) & 0b0000_0110;
         
         self.i2c.write(self.address,&[GYRO_CONFIG_1.addr,config[0]])?;
         Ok(())
@@ -170,7 +159,7 @@ where
         let mut config= [0u8];
         self.select_register_bank(GYRO_CONFIG_1.get_bank())?;
         self.i2c.write_read(self.address,&[GYRO_CONFIG_1.addr],&mut config)?;
-        let scale = (config[0] & 0b0000_0110) >> 1;
+        let scale = (config[0] & 0b0000_0110) >> BITSHIFT_SCALE;
         Ok(scale)
     }
 }
