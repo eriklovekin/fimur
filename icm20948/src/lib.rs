@@ -45,6 +45,7 @@ where
     type Error = error::ImuError<E>;
 
     fn init(&mut self) -> Result<(), Self::Error> {
+        self.select_register_bank(PWR_MGMT_1.get_bank())?;
         self.i2c.write(self.address, &[PWR_MGMT_1.addr,0x09])?;
         // self.i2c.write(self.address,Accel); // Accelerometer settings
         Ok(())
@@ -61,6 +62,7 @@ where
 
     fn read_accelerometer_raw(&mut self) -> Result<(f32,f32,f32), Self::Error> {
         let mut buf = [0u8; 6];
+        self.select_register_bank(ACCEL_XOUT_H.get_bank())?;
         self.i2c.write_read(self.address,&[ACCEL_XOUT_H.addr],&mut buf)?;
         let x = i16::from_be_bytes([buf[0], buf[1]]) as f32;
         let y = i16::from_be_bytes([buf[2], buf[3]]) as f32;
@@ -80,6 +82,7 @@ where
 
     fn read_gyroscope_raw(&mut self) -> Result<(f32, f32, f32), Self::Error> {
         let mut buf = [0u8; 6];
+        self.select_register_bank(GYRO_XOUT_H.get_bank())?;
         self.i2c.write_read(self.address,&[GYRO_XOUT_H.addr],&mut buf)?;
         let x = i16::from_be_bytes([buf[0], buf[1]]) as f32;
         let y = i16::from_be_bytes([buf[2], buf[3]]) as f32;
