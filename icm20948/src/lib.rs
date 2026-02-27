@@ -121,6 +121,7 @@ where
 {
     fn set_accelerometer_scale(&mut self, scale: u8) -> Result<(), Self::Error> {
         let mut config= [0u8];
+        self.select_register_bank(ACCEL_CONFIG.get_bank())?;
         self.i2c.write_read(self.address,&[ACCEL_CONFIG.addr],&mut config)?;
         config[0] &= !0b0000_0110;
         match scale {
@@ -136,6 +137,7 @@ where
 
     fn get_accelerometer_scale(&mut self) -> Result<u8, Self::Error> {
         let mut config= [0u8];
+        self.select_register_bank(ACCEL_CONFIG.get_bank())?;
         self.i2c.write_read(self.address,&[ACCEL_CONFIG.addr],&mut config)?;
 
         match config[0] & 0b0000_0110 {
@@ -152,7 +154,7 @@ where
             return Err(error::ImuError::InvalidSetGyroscopeScale)
         }
         let mut config= [0u8];
-        self.select_register_bank(2)?;
+        self.select_register_bank(GYRO_CONFIG_1.get_bank())?;
         self.i2c.write_read(self.address,&[GYRO_CONFIG_1.addr],&mut config)?;
         config[0] &= !0b0000_0110;
         config[0] |= (scale << 1) & 0b0000_0110;

@@ -61,8 +61,8 @@ fn main() -> ! {
             panic!("Manual panic after init failure");
         }
     }
-    // imu.set_accelerometer_scale(3)
-    //     .expect("failed to set accelerometer range");
+    imu.set_accelerometer_scale(3)
+        .expect("failed to set accelerometer range");
     imu.set_gyroscope_scale(3)
         .expect("failed to set gyroscope range");
     
@@ -76,9 +76,7 @@ fn main() -> ! {
     let (mut v_xB, mut v_yB, mut v_zB): (f32, f32, f32) = (0., 0., 0.);
     let (r_xB, r_yB, r_zB): (f32, f32, f32) = (0., 0., 0.);
     let (mut phi, mut theta, mut psi): (f32, f32, f32) = (0., 0., 0.);
-    // let gyro_scale: u8 = imu.get_gyroscope_scale()
-    //     .expect("unable to read imu gyro scale");
-    
+
     // let system = peripherals.SYSTEM.split();
     // let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
     // let mut delay = Delay::new(&clocks);
