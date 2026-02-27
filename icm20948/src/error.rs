@@ -5,6 +5,7 @@ pub enum ImuError<I2cError> {
     FailedGetAccelerometerScale,
     InvalidSetGyroscopeScale,
     FailedGetGyroscopeScale,
+    InvalidRegisterBank
 }
 
 impl<E> From<E> for ImuError<E> {

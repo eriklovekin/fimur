@@ -4,7 +4,7 @@ use embedded_hal::{
     i2c::I2c,
     // delay
 };
-use imu_traits::ImuWithAdustableScale;
+use imu_traits::{ImuWithAdustableScale, ImuWithRegisterBanks};
 use imu_traits::{
     Imu
 };
@@ -117,37 +117,7 @@ impl<I2C, E> ImuWithAdustableScale for Icm20948<I2C>
 where 
     I2C: I2c<Error = E>,
 {
-    // fn set_accelerometer_scale(&mut self, scale: i8) -> Result<(), Self::Error> {
-    //     let mut config= [0u8; 8];
-    //     self.i2c.write_read(self.address,&[ACCEL_CONFIG.addr],&mut config)?;
-    //     config[0] = clear_bits(config[0],2,2); 
-    //     match scale {
-    //         0 => config[0] |= 0b00 << 1,
-    //         1 => config[0] |= 0b01 << 1,
-    //         2 => config[0] |= 0b10 << 1,
-    //         3 => config[0] |= 0b11 << 1,
-    //         _ => config[0] |= 0b00 << 1, // TODO: make this an error instead
-    //     }
-    //     self.i2c.write_read(self.address,&config,&mut config)?;
-    //     // self.i2c.write(self.address,&config);
-    //     Ok(())
-    // }
-
-    // fn get_accelerometer_scale(&mut self) -> Result<u8, Self::Error> {
-    //     let mut config= [0u8; 8];
-    //     self.i2c.write_read(self.address,&[ACCEL_CONFIG.addr],&mut config)?;
-    //     config[0] = clear_bits(config[0],7,5)?; 
-    //     config[0] = clear_bits(config[0],0,1)?; 
-    //     match config[0] {
-    //         0b000 => Ok(0),
-    //         0b010 => Ok(1),
-    //         0b100 => Ok(2),
-    //         0b110 => Ok(3),
-    //         _     => Ok(4) // TODO: make this an error instead
-    //     }
-    // }
-
-    fn set_accelerometer_scale(&mut self, scale: i8) -> Result<(), Self::Error> {
+    fn set_accelerometer_scale(&mut self, scale: u8) -> Result<(), Self::Error> {
         let mut config= [0u8];
         self.i2c.write_read(self.address,&[ACCEL_CONFIG.addr],&mut config)?;
         config[0] &= !0b0000_0110;
@@ -166,7 +136,7 @@ where
         let mut config= [0u8];
         self.i2c.write_read(self.address,&[ACCEL_CONFIG.addr],&mut config)?;
 
-        match config[0] & 0b00000110 {
+        match config[0] & 0b0000_0110 {
             0b0000_0000 => Ok(0),
             0b0000_0010 => Ok(1),
             0b0000_0100 => Ok(2),
@@ -175,32 +145,27 @@ where
         }
     }
 
-    fn set_gyroscope_scale(&mut self, scale: i8) -> Result<(), Self::Error> {
+    fn set_gyroscope_scale(&mut self, scale: u8) -> Result<(), Self::Error> {
+        if scale > 3 {
+            return Err(error::ImuError::InvalidSetGyroscopeScale)
+        }
         let mut config= [0u8];
+        self.select_register_bank(2)?;
         self.i2c.write_read(self.address,&[GYRO_CONFIG_1.addr],&mut config)?;
         config[0] &= !0b0000_0110;
-        match scale {
-            0 => config[0] |= 0b00 << 1,
-            1 => config[0] |= 0b01 << 1,
-            2 => config[0] |= 0b10 << 1,
-            3 => config[0] |= 0b11 << 1,
-            _ => return Err(error::ImuError::InvalidSetGyroscopeScale)
-        }
-        self.i2c.write_read(self.address,&[GYRO_CONFIG_1.addr,config[0]],&mut config)?;
+        config[0] |= (scale << 1) & 0b0000_0110;
+        
+        self.i2c.write(self.address,&[GYRO_CONFIG_1.addr,config[0]])?;
         Ok(())
     }
 
     fn get_gyroscope_scale(&mut self) -> Result<u8, Self::Error> {
         let mut config= [0u8];
+        self.select_register_bank(2)?;
         self.i2c.write_read(self.address,&[GYRO_CONFIG_1.addr],&mut config)?;
-
-        match config[0] & 0b00000110 {
-            0b0000_0000 => Ok(0),
-            0b0000_0010 => Ok(1),
-            0b0000_0100 => Ok(2),
-            0b0000_0110 => Ok(3),
-            _           => return Err(error::ImuError::FailedGetGyroscopeScale)
-        }
+        let scale = config[0];
+        // let scale = (config[0] & 0b0000_0110) >> 1;
+        Ok(scale)
     }
 }
 
@@ -212,4 +177,18 @@ pub fn gyro_to_quaternion(w:(f32, f32, f32), dt_us: u64) -> (f32, f32, f32, f32)
     let q3 = (w.1/w_mag)*sinf(w_mag*dt_s/2.);
     let q4 = (w.2/w_mag)*sinf(w_mag*dt_s/2.);
     (q1, q2, q3, q4)
+}
+
+
+impl<I2C, E> ImuWithRegisterBanks for Icm20948<I2C>
+where 
+    I2C: I2c<Error = E>,
+{
+    fn select_register_bank(&mut self, bank: u8) -> Result<(), Self::Error> {
+        if bank > 3 {
+            return Err(error::ImuError::InvalidRegisterBank)
+        }
+        self.i2c.write(self.address,&[REG_BANK_SEL.addr,bank<<4])?;
+        Ok(())
+    }
 }

@@ -25,7 +25,7 @@ use {esp_backtrace as _, esp_println as _};
 use esp_hal::i2c::master::{I2c, Config};
 
 use icm20948::Icm20948;
-use imu_traits::Imu;
+use imu_traits::{Imu, ImuWithAdustableScale};
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
@@ -61,6 +61,17 @@ fn main() -> ! {
             panic!("Manual panic after init failure");
         }
     }
+    // imu.set_accelerometer_scale(3)
+    //     .expect("failed to set accelerometer range");
+    imu.set_gyroscope_scale(3)
+        .expect("failed to set gyroscope range");
+    
+    // delay_1ms();
+
+    let ascale = imu.get_accelerometer_scale()
+        .expect("failed to get accelerometer scale");
+    let gscale = imu.get_gyroscope_scale()
+        .expect("failed to get gyroscope scale");
 
     let (mut v_xB, mut v_yB, mut v_zB): (f32, f32, f32) = (0., 0., 0.);
     let (r_xB, r_yB, r_zB): (f32, f32, f32) = (0., 0., 0.);
@@ -85,6 +96,7 @@ fn main() -> ! {
 
     info!("reading imu data");
     loop {
+        info!("scales: accel: {}, gyro: {}", ascale, gscale);
         led.write([color].into_iter()).unwrap();
         let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_micros(loop_duration_us) {}
@@ -110,5 +122,12 @@ fn main() -> ! {
         color.g = tmp;
 
         timestamp += loop_duration_us;
+    }
+}
+
+fn delay_1ms() {
+    let start = Instant::now();
+    while start.elapsed() < Duration::from_millis(10) {
+        core::hint::spin_loop();
     }
 }

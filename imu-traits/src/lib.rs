@@ -114,9 +114,13 @@ pub fn clear_bits(bits: u8, position: u8, size: u8) -> Result<u8, &'static str> 
 }
 
 pub trait ImuWithAdustableScale: Imu {
-    fn set_accelerometer_scale(&mut self, scale: i8) -> Result<(), Self::Error>;
+    fn set_accelerometer_scale(&mut self, scale: u8) -> Result<(), Self::Error>;
     fn get_accelerometer_scale(&mut self) -> Result<u8, Self::Error>;
-    fn set_gyroscope_scale(&mut self, scale: i8) -> Result<(), Self::Error>;
+    fn set_gyroscope_scale(&mut self, scale: u8) -> Result<(), Self::Error>;
     fn get_gyroscope_scale(&mut self) -> Result<u8, Self::Error>;
     
+}
+
+pub trait ImuWithRegisterBanks: Imu {
+    fn select_register_bank(&mut self, bank: u8) -> Result<(), Self::Error>;
 }
