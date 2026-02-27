@@ -1,10 +1,10 @@
 use core::marker::PhantomData;
 
 pub enum Bank {
-    Bank0,
-    Bank1,
-    Bank2,
-    Bank3
+    Bank0 = 0,
+    Bank1 = 1,
+    Bank2 = 2,
+    Bank3 = 3
 }
 
 pub trait RegisterBank {
@@ -45,9 +45,15 @@ impl<B: RegisterBank> Register<B> {
             _bank: PhantomData,
         }
     }
+
+    pub const fn get_bank(&self) -> u8 {
+        B::BANK as u8
+    }
 }
 
 pub mod bank0;
 pub mod bank1;
 pub mod bank2;
 pub mod bank3;
+
+pub const BITSHIFT_REG_SELECT: u8 = 4;

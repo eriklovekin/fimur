@@ -20,6 +20,8 @@ mod registers;
 use registers::bank0::*;
 // use registers::bank1::*;
 use registers::bank2::*;
+
+use crate::registers::BITSHIFT_REG_SELECT;
 // use registers::bank3::*;
 
 pub mod constants;
@@ -161,10 +163,9 @@ where
 
     fn get_gyroscope_scale(&mut self) -> Result<u8, Self::Error> {
         let mut config= [0u8];
-        self.select_register_bank(2)?;
+        self.select_register_bank(GYRO_CONFIG_1.get_bank())?;
         self.i2c.write_read(self.address,&[GYRO_CONFIG_1.addr],&mut config)?;
-        let scale = config[0];
-        // let scale = (config[0] & 0b0000_0110) >> 1;
+        let scale = (config[0] & 0b0000_0110) >> 1;
         Ok(scale)
     }
 }
@@ -188,7 +189,7 @@ where
         if bank > 3 {
             return Err(error::ImuError::InvalidRegisterBank)
         }
-        self.i2c.write(self.address,&[REG_BANK_SEL.addr,bank<<4])?;
+        self.i2c.write(self.address,&[REG_BANK_SEL.addr,bank<<BITSHIFT_REG_SELECT])?;
         Ok(())
     }
 }
