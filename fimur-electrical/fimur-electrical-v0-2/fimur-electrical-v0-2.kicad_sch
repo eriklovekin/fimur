@@ -2450,6 +2450,131 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "power:VCC"
+			(power)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "VCC"
+				(at 0 3.556 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"VCC\""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "global power"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "VCC_0_1"
+				(polyline
+					(pts
+						(xy -0.762 1.27) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 2.54) (xy 0.762 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "VCC_1_1"
+				(pin power_in line
+					(at 0 0 90)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 	)
 	(junction
 		(at 62.23 87.63)
@@ -2506,16 +2631,22 @@
 		(uuid "1a9046eb-8a05-45b5-a424-a834003a1de9")
 	)
 	(junction
+		(at 36.83 85.09)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "21308383-8b10-4733-be4f-5a8ac4db6d15")
+	)
+	(junction
+		(at 35.56 87.63)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "238bcd6e-fabe-46ed-93d7-c6a53dce43b0")
+	)
+	(junction
 		(at 64.77 160.02)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "2a27074d-c743-4c9e-8371-d503ff103895")
-	)
-	(junction
-		(at 36.83 160.02)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "2c4cfa70-cda3-4977-b90f-4d35d53a15fa")
 	)
 	(junction
 		(at 168.91 87.63)
@@ -3359,7 +3490,7 @@
 	)
 	(wire
 		(pts
-			(xy 33.02 87.63) (xy 39.37 87.63)
+			(xy 33.02 87.63) (xy 35.56 87.63)
 		)
 		(stroke
 			(width 0)
@@ -3816,6 +3947,16 @@
 			(type default)
 		)
 		(uuid "80ae6116-f408-45c9-a31b-af2a81e1d7ee")
+	)
+	(wire
+		(pts
+			(xy 35.56 87.63) (xy 39.37 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "810277b1-0bec-4b65-9a9e-fa4df7ca6de0")
 	)
 	(wire
 		(pts
@@ -5176,7 +5317,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "28a06ae1-d0e9-49e2-add4-59a917785965")
-		(property "Reference" "J13"
+		(property "Reference" "J14"
 			(at 209.55 149.8599 0)
 			(effects
 				(font
@@ -5194,7 +5335,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_JST:JST_PH_S4B-PH-K_1x04_P2.00mm_Horizontal"
+		(property "Footprint" "Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal"
 			(at 207.01 149.86 0)
 			(effects
 				(font
@@ -5236,7 +5377,7 @@
 		(instances
 			(project "fimur-electrical-v0-2"
 				(path "/d9ca54f7-b1e2-4ace-986c-e50c0b614954"
-					(reference "J13")
+					(reference "J14")
 					(unit 1)
 				)
 			)
@@ -5252,7 +5393,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "409a518c-b752-4725-8fa7-820c3bc974c2")
-		(property "Reference" "J14"
+		(property "Reference" "J15"
 			(at 236.22 154.9399 0)
 			(effects
 				(font
@@ -5270,7 +5411,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_JST:JST_PH_S4B-PH-K_1x04_P2.00mm_Horizontal"
+		(property "Footprint" "Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal"
 			(at 233.68 154.94 0)
 			(effects
 				(font
@@ -5312,7 +5453,7 @@
 		(instances
 			(project "fimur-electrical-v0-2"
 				(path "/d9ca54f7-b1e2-4ace-986c-e50c0b614954"
-					(reference "J14")
+					(reference "J15")
 					(unit 1)
 				)
 			)
@@ -5328,7 +5469,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "4db7e688-3955-45a1-a3ac-50d532961b61")
-		(property "Reference" "J8"
+		(property "Reference" "J9"
 			(at 156.21 118.1099 0)
 			(effects
 				(font
@@ -5346,7 +5487,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_JST:JST_PH_S4B-PH-K_1x04_P2.00mm_Horizontal"
+		(property "Footprint" "Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal"
 			(at 153.67 118.11 0)
 			(effects
 				(font
@@ -5388,7 +5529,7 @@
 		(instances
 			(project "fimur-electrical-v0-2"
 				(path "/d9ca54f7-b1e2-4ace-986c-e50c0b614954"
-					(reference "J8")
+					(reference "J9")
 					(unit 1)
 				)
 			)
@@ -5404,7 +5545,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "66ef57bf-9c7b-45a0-8e1d-cc14a503e16f")
-		(property "Reference" "J7"
+		(property "Reference" "J8"
 			(at 129.54 113.0299 0)
 			(effects
 				(font
@@ -5422,7 +5563,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_JST:JST_PH_S4B-PH-K_1x04_P2.00mm_Horizontal"
+		(property "Footprint" "Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal"
 			(at 127 113.03 0)
 			(effects
 				(font
@@ -5464,7 +5605,7 @@
 		(instances
 			(project "fimur-electrical-v0-2"
 				(path "/d9ca54f7-b1e2-4ace-986c-e50c0b614954"
-					(reference "J7")
+					(reference "J8")
 					(unit 1)
 				)
 			)
@@ -5480,7 +5621,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "6b215873-8264-40df-9fdf-df748c577191")
-		(property "Reference" "J11"
+		(property "Reference" "J12"
 			(at 156.21 139.6999 0)
 			(effects
 				(font
@@ -5498,7 +5639,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_JST:JST_PH_S4B-PH-K_1x04_P2.00mm_Horizontal"
+		(property "Footprint" "Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal"
 			(at 153.67 139.7 0)
 			(effects
 				(font
@@ -5540,7 +5681,7 @@
 		(instances
 			(project "fimur-electrical-v0-2"
 				(path "/d9ca54f7-b1e2-4ace-986c-e50c0b614954"
-					(reference "J11")
+					(reference "J12")
 					(unit 1)
 				)
 			)
@@ -5556,7 +5697,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "70cce69b-d6f9-46cc-9648-77245a95404b")
-		(property "Reference" "J12"
+		(property "Reference" "J13"
 			(at 182.88 144.7799 0)
 			(effects
 				(font
@@ -5574,7 +5715,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_JST:JST_PH_S4B-PH-K_1x04_P2.00mm_Horizontal"
+		(property "Footprint" "Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal"
 			(at 180.34 144.78 0)
 			(effects
 				(font
@@ -5616,7 +5757,72 @@
 		(instances
 			(project "fimur-electrical-v0-2"
 				(path "/d9ca54f7-b1e2-4ace-986c-e50c0b614954"
-					(reference "J12")
+					(reference "J13")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:VCC")
+		(at 35.56 87.63 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "71c16af8-d6b5-4208-9925-2cbc15e94741")
+		(property "Reference" "#PWR02"
+			(at 35.56 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VCC"
+			(at 33.782 86.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 35.56 87.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 35.56 87.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VCC\""
+			(at 35.56 87.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "7a4a5d1f-04dc-4416-af8b-fef38307c983")
+		)
+		(instances
+			(project ""
+				(path "/d9ca54f7-b1e2-4ace-986c-e50c0b614954"
+					(reference "#PWR02")
 					(unit 1)
 				)
 			)
@@ -5816,7 +6022,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "876dbc64-5680-4984-ab7e-a7b4d8f948bd")
-		(property "Reference" "J15"
+		(property "Reference" "J7"
 			(at 105.41 101.5999 0)
 			(effects
 				(font
@@ -5834,7 +6040,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_JST:JST_PH_S4B-PH-K_1x04_P2.00mm_Horizontal"
+		(property "Footprint" "Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal"
 			(at 102.87 101.6 0)
 			(effects
 				(font
@@ -5876,7 +6082,7 @@
 		(instances
 			(project "fimur-electrical-v0-2"
 				(path "/d9ca54f7-b1e2-4ace-986c-e50c0b614954"
-					(reference "J15")
+					(reference "J7")
 					(unit 1)
 				)
 			)
@@ -6024,16 +6230,15 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 36.83 160.02 0)
+		(at 36.83 85.09 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "9861febf-cdbc-4671-aa89-2bd5916ea82f")
 		(property "Reference" "#PWR01"
-			(at 36.83 166.37 0)
+			(at 36.83 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6042,15 +6247,16 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 36.83 165.1 0)
+			(at 34.798 81.534 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify right)
 			)
 		)
 		(property "Footprint" ""
-			(at 36.83 160.02 0)
+			(at 36.83 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6059,7 +6265,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 36.83 160.02 0)
+			(at 36.83 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6068,7 +6274,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 36.83 160.02 0)
+			(at 36.83 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6080,7 +6286,7 @@
 			(uuid "e16fac97-3834-42ef-a254-a6fd1cfeccac")
 		)
 		(instances
-			(project ""
+			(project "fimur-electrical-v0-2"
 				(path "/d9ca54f7-b1e2-4ace-986c-e50c0b614954"
 					(reference "#PWR01")
 					(unit 1)
@@ -6116,7 +6322,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Connector_PinSocket_1.27mm:PinSocket_2x02_P1.27mm_Vertical"
+		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_2x02_P2.54mm_Vertical"
 			(at 41.91 107.95 0)
 			(effects
 				(font
@@ -6357,7 +6563,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e10e810c-7be5-4dce-afb7-90fffb40f196")
-		(property "Reference" "J10"
+		(property "Reference" "J11"
 			(at 209.55 128.2699 0)
 			(effects
 				(font
@@ -6375,7 +6581,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_JST:JST_PH_S4B-PH-K_1x04_P2.00mm_Horizontal"
+		(property "Footprint" "Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal"
 			(at 207.01 128.27 0)
 			(effects
 				(font
@@ -6417,7 +6623,7 @@
 		(instances
 			(project "fimur-electrical-v0-2"
 				(path "/d9ca54f7-b1e2-4ace-986c-e50c0b614954"
-					(reference "J10")
+					(reference "J11")
 					(unit 1)
 				)
 			)
@@ -6589,7 +6795,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_JST:JST_PH_S4B-PH-K_1x04_P2.00mm_Horizontal"
+		(property "Footprint" "Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal"
 			(at 78.74 95.25 0)
 			(effects
 				(font
@@ -6647,7 +6853,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f35743b6-10ca-45c6-bb53-18c8a3b62155")
-		(property "Reference" "J9"
+		(property "Reference" "J10"
 			(at 182.88 123.1899 0)
 			(effects
 				(font
@@ -6665,7 +6871,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_JST:JST_PH_S4B-PH-K_1x04_P2.00mm_Horizontal"
+		(property "Footprint" "Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal"
 			(at 180.34 123.19 0)
 			(effects
 				(font
@@ -6707,7 +6913,7 @@
 		(instances
 			(project "fimur-electrical-v0-2"
 				(path "/d9ca54f7-b1e2-4ace-986c-e50c0b614954"
-					(reference "J9")
+					(reference "J10")
 					(unit 1)
 				)
 			)
