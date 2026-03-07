@@ -59,13 +59,13 @@ pub trait Imu {
     /// - `raw_to_unit`: scaling factor to convert from raw to physical data
     fn read_gyroscope_units(&mut self,raw_to_units: f32) -> Result<(f32, f32, f32), Self::Error>;
 
-        /// Reads newest gyroscope data
+    /// Reads newest gyroscope data
     /// 
     /// All gyroscope registers are consecutive, 
     /// so can be read with a single write_read operation
     /// 
     /// # Return
-    /// raw accelerometer measurement as (phi,theta,psi)
+    /// raw gyroscope measurement as (phi,theta,psi)
     /// 
     /// # TODO
     /// create function that reads all accel/gyro data in one write_read operation
@@ -96,31 +96,67 @@ pub trait Imu {
 }
 
 pub trait ImuWithMagnetometer : Imu {
-    fn read_megnetometer(&mut self) -> Result<(f32, f32, f32), Self::Error>;
-}
-
-pub fn clear_bits(bits: u8, position: u8, size: u8) -> Result<u8, &'static str> {
-    if position > 7 {
-        return Err("position greater than size of bits");
-    } 
-    if size > position+1 {
-        return Err("size must be <= position+1");
-    } 
-    if size == 0 {
-        return Err("size must be > 0");
-    }
-    let mask: u8 = ((1<<size)-1) << position;
-    Ok(bits & !mask)
+    fn read_magnetometer_raw(&mut self) -> Result<(f32, f32, f32), Self::Error>;
+    
+    /// Helper function to convert magnetometer data from raw data to specified units
+    /// 
+    /// # Parameters
+    /// - `raw_to_units`: scaling factor to convert from raw to physical data
+    fn read_magnetometer_units(&mut self,raw_to_units: f32) -> Result<(f32, f32, f32), Self::Error>;
 }
 
 pub trait ImuWithAdustableScale: Imu {
+
+    /// Set sensitivity range of the accelerometer
+    ///
+    /// # Parameters
+    /// - scale: can be 0, 1, 2, or 3. 
+    ///     0: +- 2g
+    ///     1: +- 4g
+    ///     2: +- 8g
+    ///     3: +- 16g
     fn set_accelerometer_scale(&mut self, scale: u8) -> Result<(), Self::Error>;
+    
+    /// Get sensitivity range of the accelerometer
+    ///
+    /// # Returns
+    /// - scale: can be 0, 1, 2, or 3. 
+    ///     0: +- 2g
+    ///     1: +- 4g
+    ///     2: +- 8g
+    ///     3: +- 16g
     fn get_accelerometer_scale(&mut self) -> Result<u8, Self::Error>;
+    
+    /// Get sensitivity range of the gyroscope
+    ///
+    /// # Parameters
+    /// - scale: can be 0, 1, 2, or 3. 
+    ///     0: +- 250 dps
+    ///     1: +- 500 dps
+    ///     2: +- 1000 dps
+    ///     3: +- 2000 dps
     fn set_gyroscope_scale(&mut self, scale: u8) -> Result<(), Self::Error>;
+    
+    /// Get sensitivity range of the gyroscope
+    ///
+    /// # Returns
+    /// - scale: can be 0, 1, 2, or 3. 
+    ///     0: +- 250 dps
+    ///     1: +- 500 dps
+    ///     2: +- 1000 dps
+    ///     3: +- 2000 dps
     fn get_gyroscope_scale(&mut self) -> Result<u8, Self::Error>;
     
 }
 
 pub trait ImuWithRegisterBanks: Imu {
+
+    /// Select register bank with which to interact
+    /// 
+    /// Should always be called before reading/writing to a register
+    /// Argument should always be MY_REGISTER.get_bank() 
+    /// because the register definitions track the associated bank
+    /// # Example
+    /// select_register_bank(ACCEL_CONFIG.get_bank())
     fn select_register_bank(&mut self, bank: u8) -> Result<(), Self::Error>;
 }

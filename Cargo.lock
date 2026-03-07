@@ -668,6 +668,7 @@ dependencies = [
  "esp-println",
  "icm20948",
  "imu-traits",
+ "libm",
  "smart-leds",
 ]
 
@@ -780,7 +781,6 @@ version = "0.1.0"
 dependencies = [
  "embedded-hal 1.0.0",
  "imu-traits",
- "libm",
 ]
 
 [[package]]

@@ -66,25 +66,9 @@ fn main() -> ! {
     imu.set_gyroscope_scale(3)
         .expect("failed to set gyroscope range");
     
-    // delay_1ms();
-
-    let ascale = imu.get_accelerometer_scale()
-        .expect("failed to get accelerometer scale");
-    let gscale = imu.get_gyroscope_scale()
-        .expect("failed to get gyroscope scale");
-
     let (mut v_xB, mut v_yB, mut v_zB): (f32, f32, f32) = (0., 0., 0.);
     let (r_xB, r_yB, r_zB): (f32, f32, f32) = (0., 0., 0.);
     let (mut phi, mut theta, mut psi): (f32, f32, f32) = (0., 0., 0.);
-
-    // let system = peripherals.SYSTEM.split();
-    // let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
-    // let mut delay = Delay::new(&clocks);
-
-    // let imu_delay = 10;
-    // let interface = I2cInterface::default(i2c);
-    // let mut imu = Icm20948Driver::new(interface).unwrap();
-    // imu.init(&mut imu_delay).unwrap();
 
     let mut led_buf = smart_led_buffer!(1);
     let mut led = SmartLedsAdapter::new(rmt.channel0, _peripherals.GPIO8, &mut led_buf);
@@ -94,7 +78,6 @@ fn main() -> ! {
 
     info!("reading imu data");
     loop {
-        info!("scales: accel: {}, gyro: {}", ascale, gscale);
         led.write([color].into_iter()).unwrap();
         let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_micros(loop_duration_us) {}
@@ -120,12 +103,5 @@ fn main() -> ! {
         color.g = tmp;
 
         timestamp += loop_duration_us;
-    }
-}
-
-fn delay_1ms() {
-    let start = Instant::now();
-    while start.elapsed() < Duration::from_millis(10) {
-        core::hint::spin_loop();
     }
 }

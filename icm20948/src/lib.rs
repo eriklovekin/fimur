@@ -4,16 +4,9 @@ use embedded_hal::{
     i2c::I2c,
     // delay
 };
-use imu_traits::{ImuWithAdustableScale, ImuWithRegisterBanks};
+use imu_traits::{ImuWithAdustableScale, ImuWithMagnetometer, ImuWithRegisterBanks};
 use imu_traits::{
     Imu
-};
-
-use libm::{
-    sinf,
-    cosf,
-    atan2f,
-    sqrtf
 };
 
 mod registers;
@@ -163,17 +156,6 @@ where
         Ok(scale)
     }
 }
-
-pub fn gyro_to_quaternion(w:(f32, f32, f32), dt_us: u64) -> (f32, f32, f32, f32) {
-    let w_mag = sqrtf(w.0*w.0 + w.1*w.1 + w.2*w.2);
-    let dt_s = dt_us as f32 / 1e6;
-    let q1 = cosf(w_mag*dt_s/2.);
-    let q2 = (w.0/w_mag)*sinf(w_mag*dt_s/2.);
-    let q3 = (w.1/w_mag)*sinf(w_mag*dt_s/2.);
-    let q4 = (w.2/w_mag)*sinf(w_mag*dt_s/2.);
-    (q1, q2, q3, q4)
-}
-
 
 impl<I2C, E> ImuWithRegisterBanks for Icm20948<I2C>
 where 
