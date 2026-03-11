@@ -1,0 +1,8 @@
+"Id";"Designator";"Footprint";"Quantity";"Designation";"Supplier and ref";
+1;"1V8,VCC,GND";"TestPoint_Loop_D1.80mm_Drill1.0mm_Beaded";3;"TestPoint_Loop_D1.80mm_Drill1.0mm_Beaded";;;
+2;"J2,J1";"JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal";2;"Conn_01x04_Pin";;;
+3;"R2,R1";"R_1206_3216Metric";2;"10k";;;
+4;"C1,C2,C3,C6,C4,C5";"C_0603_1608Metric";6;"0.1 uF";;;
+5;"J3";"PinSocket_2x02_P2.54mm_Horizontal";1;"Conn_02x02_Odd_Even";;;
+6;"U2,U3";"InvenSense_QFN-24_3x3mm_P0.4mm";2;"ICM-20948";;;
+7;"U1";"WLCSP-4_0.64x0.64mm_Layout2x2_P0.35mm";1;"NCP163AFCS180T2G";;;
