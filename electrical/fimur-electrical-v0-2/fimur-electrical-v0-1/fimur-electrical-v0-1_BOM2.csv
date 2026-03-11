@@ -1,8 +1,0 @@
-Comment,Designator,Footprint
-TestPoint_Loop_D1.80mm_Drill1.0mm_Beaded,"1V8,VCC,GND",TestPoint_Loop_D1.80mm_Drill1.0mm_Beaded
-Conn_01x04_Pin,"J2,J1",JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal
-10k,"R2,R1",R_1206_3216Metric
-0.1 uF,"C1,C2,C3,C6,C4,C5",C_0603_1608Metric
-Conn_02x02_Odd_Even,J3,PinSocket_2x02_P2.54mm_Horizontal
-ICM-20948,"U2,U3",InvenSense_QFN-24_3x3mm_P0.4mm
-NCP163AFCS180T2G,U1,WLCSP-4_0.64x0.64mm_Layout2x2_P0.35mm
