@@ -92,6 +92,11 @@ fn main() -> ! {
     let (r_xB, r_yB, r_zB): (f32, f32, f32) = (0., 0., 0.);
     let (mut phi, mut theta, mut psi): (f32, f32, f32) = (0., 0., 0.);
 
+    let (mut v2_xB, mut v2_yB, mut v2_zB): (f32, f32, f32) = (0., 0., 0.);
+    let (r2_xB, r2_yB, r2_zB): (f32, f32, f32) = (0., 0., 0.);
+    let (mut phi2, mut theta2, mut psi2): (f32, f32, f32) = (0., 0., 0.);
+
+    
     let mut led_buf = smart_led_buffer!(1);
     let mut led = SmartLedsAdapter::new(rmt.channel0, _peripherals.GPIO8, &mut led_buf);
     const LEVEL: u8 = 10;
@@ -108,22 +113,20 @@ fn main() -> ! {
 
         let (a_xB, a_yB, a_zB) = imu1.read_accelerometer_mps2()
             .expect("failed to read accelerometer");
-        
         let (w_xB, w_yB, w_zB) = imu1.read_gyroscope_dps()
             .expect("failed to read gyroscope");
-
         (v_xB, v_yB, v_zB) = imu1.velocity_from_direct_integration((v_xB, v_yB, v_zB), loop_duration_us)
             .expect("failed to calculate velocity by integration");
         (phi, theta, psi) = imu1.attitude_from_direct_integration((phi, theta, psi), loop_duration_us)
             .expect("failed to calculate attitude by integration");
         
-        let (a2_xB, a2_yB, a2_zB) = imu1.read_accelerometer_mps2()
+        let (a2_xB, a2_yB, a2_zB) = imu2.read_accelerometer_mps2()
             .expect("failed to read accelerometer");
-        let (w2_xB, w2_yB, w2_zB) = imu1.read_gyroscope_dps()
+        let (w2_xB, w2_yB, w2_zB) = imu2.read_gyroscope_dps()
             .expect("failed to read gyroscope");
-        let (v2_xB, v2_yB, v2_zB) = imu1.velocity_from_direct_integration((v_xB, v_yB, v_zB), loop_duration_us)
+        (v2_xB, v2_yB, v2_zB) = imu2.velocity_from_direct_integration((v2_xB, v2_yB, v2_zB), loop_duration_us)
             .expect("failed to calculate velocity by integration");
-        let (phi2, theta2, psi2) = imu1.attitude_from_direct_integration((phi, theta, psi), loop_duration_us)
+        (phi2, theta2, psi2) = imu2.attitude_from_direct_integration((phi2, theta2, psi2), loop_duration_us)
             .expect("failed to calculate attitude by integration");
 
         output.clear();
