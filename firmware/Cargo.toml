@@ -28,3 +28,4 @@ imu-traits = { path = "../imu-traits"}
 icm20948 = { path = "../icm20948"}
 libm = "0.2.16"
 embedded-hal-bus = "0.3.0"
+heapless = "0.9.2"

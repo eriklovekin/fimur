@@ -19,6 +19,8 @@ use esp_hal::rmt::Rmt;
 // use esp_hal::peripherals::Peripherals;
 use esp_hal::time::{Duration, Instant, Rate};
 use core::cell::RefCell;
+use core::fmt::Write;
+use heapless::String;
 use embedded_hal_bus::i2c::RefCellDevice;
 use esp_hal_smartled::{SmartLedsAdapter, smart_led_buffer};
 use smart_leds::{RGB8, SmartLedsWrite as _};
@@ -96,6 +98,8 @@ fn main() -> ! {
     let mut color = RGB8::default();
     color.r = LEVEL;
 
+    let mut output: String<8192> = String::new();
+
     info!("reading imu data");
     loop {
         led.write([color].into_iter()).unwrap();
@@ -112,11 +116,26 @@ fn main() -> ! {
             .expect("failed to calculate velocity by integration");
         (phi, theta, psi) = imu1.attitude_from_direct_integration((phi, theta, psi), loop_duration_us)
             .expect("failed to calculate attitude by integration");
-
-
-        println!("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}", 
-                    timestamp, a_xB, a_yB, a_zB, v_xB, v_yB, v_zB, r_xB, r_yB, r_zB, w_xB, w_yB, w_zB, phi, theta, psi);
         
+        let (a2_xB, a2_yB, a2_zB) = imu1.read_accelerometer_mps2()
+            .expect("failed to read accelerometer");
+        let (w2_xB, w2_yB, w2_zB) = imu1.read_gyroscope_dps()
+            .expect("failed to read gyroscope");
+        let (v2_xB, v2_yB, v2_zB) = imu1.velocity_from_direct_integration((v_xB, v_yB, v_zB), loop_duration_us)
+            .expect("failed to calculate velocity by integration");
+        let (phi2, theta2, psi2) = imu1.attitude_from_direct_integration((phi, theta, psi), loop_duration_us)
+            .expect("failed to calculate attitude by integration");
+
+        output.clear();
+        write!(output,"{}",timestamp)
+            .expect("failed to write timestamp");
+        write!(output,",{},{},{},{},{},{},{},{},{},{},{},{}", 
+                a_xB, a_yB, a_zB, v_xB, v_yB, v_zB, w_xB, w_yB, w_zB, phi, theta, psi)
+                .expect("failed to write imu1 data");
+        write!(output,",{},{},{},{},{},{},{},{},{},{},{},{}", 
+                a2_xB, a2_yB, a2_zB, v2_xB, v2_yB, v2_zB, w2_xB, w2_yB, w2_zB, phi2, theta2, psi2)
+                .expect("failed to write imu2 data");
+        println!("{}",output);
         let tmp = color.r;
         color.r = color.b;
         color.b = color.g;
