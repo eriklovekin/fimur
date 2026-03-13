@@ -18,6 +18,8 @@ use esp_hal::rmt::Rmt;
 // use esp_hal::delay::Delay;
 // use esp_hal::peripherals::Peripherals;
 use esp_hal::time::{Duration, Instant, Rate};
+use core::cell::RefCell;
+use embedded_hal_bus::i2c::RefCellDevice;
 use esp_hal_smartled::{SmartLedsAdapter, smart_led_buffer};
 use smart_leds::{RGB8, SmartLedsWrite as _};
 use {esp_backtrace as _, esp_println as _};
@@ -51,19 +53,37 @@ fn main() -> ! {
         .expect("Failed to initialize i2c")
         .with_sda(_peripherals.GPIO2)
         .with_scl(_peripherals.GPIO3);
-    let mut imu = Icm20948::new(i2c,0x69);
-    match imu.init() {
+    let i2c_bus = RefCell::new(i2c);
+    let i2c_dev1 = RefCellDevice::new(&i2c_bus);
+    let i2c_dev2 = RefCellDevice::new(&i2c_bus);
+    let mut imu1 = Icm20948::new(i2c_dev1,0x69);
+    let mut imu2 = Icm20948::new(i2c_dev2,0x68);
+
+    match imu1.init() {
         Ok(_) => {
-            info!("Init succeeded!");
+            info!("IMU 1 init succeeded!");
         }
         Err(e) => {
             info!("Init failed: {}", defmt::Debug2Format(&e));
             panic!("Manual panic after init failure");
         }
     }
-    imu.set_accelerometer_scale(3)
+    match imu2.init() {
+        Ok(_) => {
+            info!("IMU 2 init succeeded!");
+        }
+        Err(e) => {
+            info!("Init failed: {}", defmt::Debug2Format(&e));
+            panic!("Manual panic after init failure");
+        }
+    }
+    imu1.set_accelerometer_scale(3)
         .expect("failed to set accelerometer range");
-    imu.set_gyroscope_scale(3)
+    imu1.set_gyroscope_scale(3)
+        .expect("failed to set gyroscope range");
+    imu2.set_accelerometer_scale(3)
+        .expect("failed to set accelerometer range");
+    imu2.set_gyroscope_scale(3)
         .expect("failed to set gyroscope range");
     
     let (mut v_xB, mut v_yB, mut v_zB): (f32, f32, f32) = (0., 0., 0.);
@@ -82,15 +102,15 @@ fn main() -> ! {
         let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_micros(loop_duration_us) {}
 
-        let (a_xB, a_yB, a_zB) = imu.read_accelerometer_mps2()
+        let (a_xB, a_yB, a_zB) = imu1.read_accelerometer_mps2()
             .expect("failed to read accelerometer");
         
-        let (w_xB, w_yB, w_zB) = imu.read_gyroscope_dps()
+        let (w_xB, w_yB, w_zB) = imu1.read_gyroscope_dps()
             .expect("failed to read gyroscope");
 
-        (v_xB, v_yB, v_zB) = imu.velocity_from_direct_integration((v_xB, v_yB, v_zB), loop_duration_us)
+        (v_xB, v_yB, v_zB) = imu1.velocity_from_direct_integration((v_xB, v_yB, v_zB), loop_duration_us)
             .expect("failed to calculate velocity by integration");
-        (phi, theta, psi) = imu.attitude_from_direct_integration((phi, theta, psi), loop_duration_us)
+        (phi, theta, psi) = imu1.attitude_from_direct_integration((phi, theta, psi), loop_duration_us)
             .expect("failed to calculate attitude by integration");
 
 
