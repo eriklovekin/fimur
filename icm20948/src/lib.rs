@@ -23,11 +23,15 @@ pub mod error;
 pub struct Icm20948<I2C> {
     i2c: I2C,
     address: u8,
+    /// position of S origin of IMU in Filter frame
+    origin: (f32, f32, f32), 
+    /// direction cosine matrix rotating from S to F frame
+    rotation: [[f32; 3]; 3] 
 }
 
 impl<I2C> Icm20948<I2C> {
-    pub fn new(i2c: I2C, address: u8) -> Self {
-        Self {i2c, address}
+    pub fn new(i2c: I2C, address: u8, origin: (f32, f32, f32), rotation: [[f32; 3]; 3]) -> Self {
+        Self {i2c, address, origin, rotation}
     }
 }
 
