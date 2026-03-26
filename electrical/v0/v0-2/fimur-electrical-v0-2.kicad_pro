@@ -37,9 +37,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 1.0,
-          "height": 2.0,
-          "width": 2.0
+          "drill": 3.2,
+          "height": 3.2,
+          "width": 3.2
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -487,8 +487,8 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "/home/erik/Downloads/fimur-fab/v0-2/v0-2-2grb/",
-      "pos_files": "/home/erik/Downloads/fimur-fab/v0-2/",
+      "plot": "/home/erik/fimur/electrical/v0/v0-2/v0-2-2/",
+      "pos_files": "/home/erik/fimur/electrical/v0/v0-2/v0-2-2/",
       "specctra_dsn": "",
       "step": "",
       "svg": "",

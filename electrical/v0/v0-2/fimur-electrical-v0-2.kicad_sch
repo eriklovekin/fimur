@@ -5798,7 +5798,7 @@
 				)
 			)
 		)
-		(property "Value" "PZ254V-11-03P-A40"
+		(property "Value" "HC-PZ254-11.5L-1x3PZ"
 			(at 45.085 147.32 0)
 			(effects
 				(font
@@ -6197,7 +6197,7 @@
 				)
 			)
 		)
-		(property "Value" "PZ254V-11-03P-A40"
+		(property "Value" "HC-PZ254-11.5L-1x3PZ"
 			(at 75.565 147.32 0)
 			(effects
 				(font
@@ -6334,7 +6334,7 @@
 				)
 			)
 		)
-		(property "Value" "PZ254V-11-03P-A40"
+		(property "Value" "HC-PZ254-11.5L-1x3PZ"
 			(at 60.325 147.32 0)
 			(effects
 				(font
