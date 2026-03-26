@@ -3,6 +3,19 @@
 pub trait Imu {
     type Error;
 
+    /// Require that each implementation include origin and rotation members
+    fn origin_f(&mut self) -> [f32;3];
+    fn rotation_s2f(&mut self) -> [f32;4];
+
+    /// Set origin of S frame in F frame
+    fn set_origin_f(&mut self, origin: [f32;3]);
+
+    /// Set rotation vector from S frame to F frame
+    fn set_rotation_s2f(&mut self, rotation: [f32;4]);
+
+    /// Set both origin of S frame in F frame and rotation quaternion from S to F
+    fn set_mount(&mut self, origin: [f32;3], rotation: [f32;4]);
+
     /// Initializes IMU
     /// 
     /// Specifically:

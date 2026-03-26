@@ -23,15 +23,29 @@ pub mod error;
 pub struct Icm20948<I2C> {
     i2c: I2C,
     address: u8,
-    /// position of S origin of IMU in Filter frame
-    origin: (f32, f32, f32), 
-    /// direction cosine matrix rotating from S to F frame
-    rotation: [[f32; 3]; 3] 
+    /// position of S origin of IMU in F frame
+    origin_f: [f32;3], 
+    /// quaternion rotating from S to F frame
+    rotation_s2f: [f32; 4]
 }
 
 impl<I2C> Icm20948<I2C> {
-    pub fn new(i2c: I2C, address: u8, origin: (f32, f32, f32), rotation: [[f32; 3]; 3]) -> Self {
-        Self {i2c, address, origin, rotation}
+    pub fn new(i2c: I2C, address: u8) -> Self {
+        Self {
+            i2c, 
+            address, 
+            origin_f: [0.0;3], 
+            rotation_s2f: [0.0, 0.0, 0.0, 1.0]
+        }
+    }
+
+    pub fn new_with_mount(i2c: I2C, address: u8, origin_f: [f32; 3], rotation_s2f: [f32; 4]) -> Self {
+        Self {
+            i2c, 
+            address, 
+            origin_f, 
+            rotation_s2f,
+        }
     }
 }
 
@@ -40,6 +54,29 @@ where
     I2C: I2c<Error = E>,
 {
     type Error = error::ImuError<E>;
+
+    fn origin_f(&mut self) -> [f32;3] {
+        self.origin_f
+    }
+
+    fn rotation_s2f(&mut self) -> [f32;4] {
+        self.rotation_s2f
+    }
+
+    fn set_origin_f(&mut self, origin: [f32;3]) {
+        self.origin_f = origin;
+    }
+
+    fn set_rotation_s2f(&mut self, rotation: [f32;4]) {
+        self.rotation_s2f = rotation;
+    }
+
+    fn set_mount(&mut self, origin: [f32;3], rotation: [f32;4]) {
+        self.set_origin_f(origin);
+        self.set_rotation_s2f(rotation);
+    }
+
+
 
     fn init(&mut self) -> Result<(), Self::Error> {
         self.select_register_bank(PWR_MGMT_1.get_bank())?;

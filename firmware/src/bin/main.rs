@@ -49,11 +49,6 @@ fn main() -> ! {
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let _peripherals = esp_hal::init(config);
     let rmt = Rmt::new(_peripherals.RMT, Rate::from_mhz(80)).unwrap();
-    
-    let default_origin: (f32, f32, f32) = (0.0, 0.0, 0.0);
-    let defalut_rotation: [[f32;3];3] = [[1.0, 0.0, 0.0], 
-                                         [0.0, 1.0, 0.0], 
-                                         [0.0, 0.0, 1.0]];
 
     let i2c_config = Config::default();
     let i2c = I2c::new(_peripherals.I2C0, i2c_config)
@@ -63,8 +58,8 @@ fn main() -> ! {
     let i2c_bus = RefCell::new(i2c);
     let i2c_dev1 = RefCellDevice::new(&i2c_bus);
     let i2c_dev2 = RefCellDevice::new(&i2c_bus);
-    let mut imu1 = Icm20948::new(i2c_dev1,0x69, default_origin, defalut_rotation);
-    let mut imu2 = Icm20948::new(i2c_dev2,0x68, default_origin, defalut_rotation);
+    let mut imu1 = Icm20948::new(i2c_dev1,0x69);
+    let mut imu2 = Icm20948::new(i2c_dev2,0x68);
 
     match imu1.init() {
         Ok(_) => {
