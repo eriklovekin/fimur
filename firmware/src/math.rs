@@ -74,7 +74,7 @@ pub fn dcm_to_quaternion_shepperd(dcm: [[f32;3];3]) -> [f32;4] {
             q3 = ((dcm[2][1] + dcm[1][2]) / q4); },
         3 => {
             q1 = (1 + c1 + c2 + c3).sqrt();
-            q1 = ((dcm[2][1] - dcm[1][2]) / q1);
+            q2 = ((dcm[2][1] - dcm[1][2]) / q1);
             q3 = ((dcm[0][2] - dcm[2][0]) / q1);
             q4 = ((dcm[1][0] - dcm[0][1]) / q1); },
         _ => println("weird")
