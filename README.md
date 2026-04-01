@@ -11,4 +11,8 @@ The F frame is the frame in which the output of the filter is represented. The o
     Rotation: Direction cosine matrix from IMU S frame to F frame
 
 ## References
-[Interactive Kalman Filter Tutorial](https://arthurlovekin.com/interactive-kalman-filter/index.html)
+1 [Interactive Kalman Filter Tutorial](https://arthurlovekin.com/interactive-kalman-filter/index.html)
+
+2 [Extended Kalman Filter](https://mwrona.com/posts/attitude-ekf/)
+
+3 Sarabandi, S; Thomas, F - Accurate Computation of Quaternions from Rotation Matrices

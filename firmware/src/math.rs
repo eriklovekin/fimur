@@ -26,7 +26,7 @@ pub fn wB_to_dquaternion(w:(f32, f32, f32), dt_us: u64) -> [f32;4] {
 
 /// Convert from quaternion to Euler angle
 /// 
-/// Formulas from https://mwrona.com/posts/attitude-ekf/
+/// Formulas from Ref. 2
 /// 
 /// # Parameters
 /// q: Quaternion
@@ -41,6 +41,8 @@ pub fn quaternion_to_euler_deg(q: [f32;4]) -> [f32;3] {
 }
 
 /// Convert from Direction Cosine Matrix (DCM) to Quaternion using Shepperd's algorithm
+/// 
+/// Formula from Ref. 3
 /// 
 /// # Parameters
 /// - dcm: DCM matrix
