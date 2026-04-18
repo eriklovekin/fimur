@@ -4,13 +4,27 @@ pub trait Imu {
     type Error;
 
     /// Require that each implementation include origin and rotation members
+    
+    /// Returns origin of sensor in F frame [m]
+    /// 
+    /// Format [xF, yF, zF]
+    /// Units: m
     fn origin_f(&mut self) -> [f32;3];
+
+    /// Returns rotation vector from S to F frame
+    /// 
+    /// Format: [w, x, y, z], where q = w + xi + yj + zk
     fn rotation_s2f(&mut self) -> [f32;4];
 
     /// Set origin of S frame in F frame
+    /// 
+    /// Format [xF, yF, zF]
+    /// Units: m
     fn set_origin_f(&mut self, origin: [f32;3]);
 
     /// Set rotation vector from S frame to F frame
+    /// 
+    /// Format: [w, x, y, z], where q = w + xi + yj + zk
     fn set_rotation_s2f(&mut self, rotation: [f32;4]);
 
     /// Set both origin of S frame in F frame and rotation quaternion from S to F

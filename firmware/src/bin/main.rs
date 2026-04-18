@@ -58,8 +58,8 @@ fn main() -> ! {
     let i2c_bus = RefCell::new(i2c);
     let i2c_dev1 = RefCellDevice::new(&i2c_bus);
     let i2c_dev2 = RefCellDevice::new(&i2c_bus);
-    let mut imu1 = Icm20948::new(i2c_dev1,0x69);
-    let mut imu2 = Icm20948::new(i2c_dev2,0x68);
+    let mut imu1 = Icm20948::new(i2c_dev1,0x68);
+    let mut imu2 = Icm20948::new(i2c_dev2,0x69);
 
     match imu1.init() {
         Ok(_) => {
@@ -79,14 +79,20 @@ fn main() -> ! {
             panic!("Manual panic after init failure");
         }
     }
+    // IMU1 is on top of stack
     imu1.set_accelerometer_scale(3)
         .expect("failed to set accelerometer range");
     imu1.set_gyroscope_scale(3)
         .expect("failed to set gyroscope range");
+    imu1.set_origin_f([0.0, 0.0, 0.0]);
+    imu1.set_rotation_s2f([0.0, 0.0, 0.0, 1.0]);
+
     imu2.set_accelerometer_scale(3)
         .expect("failed to set accelerometer range");
     imu2.set_gyroscope_scale(3)
         .expect("failed to set gyroscope range");
+    imu1.set_origin_f([0.0, 0.0, 0.01]);
+    imu1.set_rotation_s2f([0.0, 0.0, 0.0, 1.0]);
     
     let (mut v_xB, mut v_yB, mut v_zB): (f32, f32, f32) = (0., 0., 0.);
     let (r_xB, r_yB, r_zB): (f32, f32, f32) = (0., 0., 0.);
@@ -111,10 +117,24 @@ fn main() -> ! {
         let delay_start = Instant::now();
         while delay_start.elapsed() < Duration::from_micros(loop_duration_us) {}
 
-        let (a_xB, a_yB, a_zB) = imu1.read_accelerometer_mps2()
-            .expect("failed to read accelerometer");
-        let (w_xB, w_yB, w_zB) = imu1.read_gyroscope_dps()
-            .expect("failed to read gyroscope");
+        // Read all sensors
+        imu1.read_accelerometer_g().expect("failed to read accelerometer 1");
+        imu1.read_gyroscope_dps().expect("failed to read gyroscope 1");
+
+        imu2.read_accelerometer_g().expect("failed to read accelerometer 2");
+        imu2.read_gyroscope_dps().expect("failed to read gyroscope 2");
+
+        // Estimate Attitude
+
+        // Estimate Position
+
+
+
+        let (mut a_xS1, mut a_yS1, mut a_zS1): (f32, f32, f32) = imu1.read_accelerometer_mps2()
+            .expect("failed to read accelerometer 1");
+        let (mut w_xS1, mut w_yS1, mut w_zS1): (f32, f32, f32) = imu1.read_gyroscope_dps()
+            .expect("failed to read gyroscope 1");
+        
         (v_xB, v_yB, v_zB) = imu1.velocity_from_direct_integration((v_xB, v_yB, v_zB), loop_duration_us)
             .expect("failed to calculate velocity by integration");
         (phi, theta, psi) = imu1.attitude_from_direct_integration((phi, theta, psi), loop_duration_us)
@@ -133,7 +153,7 @@ fn main() -> ! {
         write!(output,"{}",timestamp)
             .expect("failed to write timestamp");
         write!(output,",{},{},{},{},{},{},{},{},{},{},{},{}", 
-                a_xB, a_yB, a_zB, v_xB, v_yB, v_zB, w_xB, w_yB, w_zB, phi, theta, psi)
+                a_xS1, a_yS1, a_zS1, v_xB, v_yB, v_zB, w_xS1, w_yS1, w_zS1, phi, theta, psi)
                 .expect("failed to write imu1 data");
         write!(output,",{},{},{},{},{},{},{},{},{},{},{},{}", 
                 a2_xB, a2_yB, a2_zB, v2_xB, v2_yB, v2_zB, w2_xB, w2_yB, w2_zB, phi2, theta2, psi2)

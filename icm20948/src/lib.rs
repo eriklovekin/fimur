@@ -4,7 +4,7 @@ use embedded_hal::{
     i2c::I2c,
     // delay
 };
-use imu_traits::{ImuWithAdustableScale, ImuWithMagnetometer, ImuWithRegisterBanks};
+use imu_traits::{ImuWithAdustableScale, ImuWithRegisterBanks};
 use imu_traits::{
     Imu
 };
@@ -26,7 +26,28 @@ pub struct Icm20948<I2C> {
     /// position of S origin of IMU in F frame
     origin_f: [f32;3], 
     /// quaternion rotating from S to F frame
-    rotation_s2f: [f32; 4]
+    rotation_s2f: [f32; 4],
+
+    meas: Measurement,
+}
+pub struct Measurement {
+    accelerometer_s_g: (f32,f32,f32),
+    gyroscope_s_dps: (f32,f32,f32),
+}
+impl Measurement {
+    pub fn init() -> Self {
+        Self {
+            accelerometer_s_g: (0.0, 0.0, 0.0),
+            gyroscope_s_dps: (0.0, 0.0, 0.0),
+        }
+    }
+
+    pub fn update_accel_s_g(&mut self, accel: (f32,f32,f32)) {
+        self.accelerometer_s_g = accel;
+    }
+    pub fn update_gyroscope_s_dps(&mut self, gyro: (f32,f32,f32)) {
+        self.gyroscope_s_dps = gyro;
+    }
 }
 
 impl<I2C> Icm20948<I2C> {
@@ -35,7 +56,8 @@ impl<I2C> Icm20948<I2C> {
             i2c, 
             address, 
             origin_f: [0.0;3], 
-            rotation_s2f: [0.0, 0.0, 0.0, 1.0]
+            rotation_s2f: [0.0, 0.0, 0.0, 1.0],
+            meas: Measurement::init()
         }
     }
 
@@ -45,6 +67,7 @@ impl<I2C> Icm20948<I2C> {
             address, 
             origin_f, 
             rotation_s2f,
+            meas: Measurement::init()
         }
     }
 }
@@ -76,8 +99,6 @@ where
         self.set_rotation_s2f(rotation);
     }
 
-
-
     fn init(&mut self) -> Result<(), Self::Error> {
         self.select_register_bank(PWR_MGMT_1.get_bank())?;
         self.i2c.write(self.address, &[PWR_MGMT_1.addr,0x09])?;
@@ -91,7 +112,9 @@ where
     }
 
     fn read_accelerometer_g(&mut self) -> Result<(f32,f32,f32), Self::Error> {
-        Ok(self.read_accelerometer_units(constants::ACCEL_FS0_SCALE)?)
+        let gs = self.read_accelerometer_units(constants::ACCEL_FS0_SCALE)?;
+        self.meas.update_accel_s_g(gs);
+        Ok(gs)
     }
 
     fn read_accelerometer_raw(&mut self) -> Result<(f32,f32,f32), Self::Error> {
@@ -105,7 +128,9 @@ where
     }
 
     fn read_gyroscope_dps(&mut self) -> Result<(f32,f32,f32), Self::Error> {
-        Ok(self.read_gyroscope_units(constants::GYRO_FS0_SCALE)?)
+        let dps = self.read_gyroscope_units(constants::GYRO_FS0_SCALE)?;
+        self.meas.update_gyroscope_s_dps(dps);
+        Ok(dps)
     }
 
 
