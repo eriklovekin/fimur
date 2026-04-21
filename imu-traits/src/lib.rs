@@ -11,10 +11,18 @@ pub trait Imu {
     /// Units: m
     fn origin_f(&mut self) -> [f32;3];
 
-    /// Returns rotation vector from S to F frame
-    /// 
-    /// Format: [w, x, y, z], where q = w + xi + yj + zk
-    fn rotation_s2f(&mut self) -> [f32;4];
+    // /// Returns rotation vector from S to F frame
+    // /// 
+    // /// Format: [w, x, y, z], where q = w + xi + yj + zk
+    // fn rotation_s2f(&mut self) -> [f32;4];
+
+    /// Returns rotation DCM from S to F frame
+    fn rotation_dcm_s2f(&mut self) -> [[f32;3];3];
+
+    /// Returns most recently measurents from accelerometer and gyroscope
+    /// # TODO
+    /// Incorporate magnetometer, temperature (and others?) as optional fields
+    fn meas(&mut self) -> Measurement;
 
     /// Set origin of S frame in F frame
     /// 
@@ -25,10 +33,13 @@ pub trait Imu {
     /// Set rotation vector from S frame to F frame
     /// 
     /// Format: [w, x, y, z], where q = w + xi + yj + zk
-    fn set_rotation_s2f(&mut self, rotation: [f32;4]);
+    // fn set_rotation_quat_s2f(&mut self, rotation: [f32;4]);
 
-    /// Set both origin of S frame in F frame and rotation quaternion from S to F
-    fn set_mount(&mut self, origin: [f32;3], rotation: [f32;4]);
+    /// Set rotation matrix from S frame to F frame
+    fn set_rotation_dcm_s2f(&mut self, rotation: [[f32;3];3]);
+
+    /// Set both origin of S frame in F frame and rotation DCM from S to F
+    fn set_mount(&mut self, origin: [f32;3], rotation: [[f32;3];3]);
 
     /// Initializes IMU
     /// 
@@ -186,4 +197,26 @@ pub trait ImuWithRegisterBanks: Imu {
     /// # Example
     /// select_register_bank(ACCEL_CONFIG.get_bank())
     fn select_register_bank(&mut self, bank: u8) -> Result<(), Self::Error>;
+}
+
+#[derive(Copy, Clone)]
+pub struct Measurement {
+    accelerometer_s_g: (f32,f32,f32),
+    gyroscope_s_dps: (f32,f32,f32),
+}
+
+impl Measurement {
+    pub fn init() -> Self {
+        Self {
+            accelerometer_s_g: (0.0, 0.0, 0.0),
+            gyroscope_s_dps: (0.0, 0.0, 0.0),
+        }
+    }
+
+    pub fn update_accel_s_g(&mut self, accel: (f32,f32,f32)) {
+        self.accelerometer_s_g = accel;
+    }
+    pub fn update_gyroscope_s_dps(&mut self, gyro: (f32,f32,f32)) {
+        self.gyroscope_s_dps = gyro;
+    }
 }

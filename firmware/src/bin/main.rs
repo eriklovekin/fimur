@@ -85,14 +85,18 @@ fn main() -> ! {
     imu1.set_gyroscope_scale(3)
         .expect("failed to set gyroscope range");
     imu1.set_origin_f([0.0, 0.0, 0.0]);
-    imu1.set_rotation_s2f([0.0, 0.0, 0.0, 1.0]);
+    imu1.set_rotation_dcm_s2f([[1.0, 0.0, 0.0],
+                               [0.0, 1.0, 0.0],
+                               [0.0, 0.0, 1.0]]);
 
     imu2.set_accelerometer_scale(3)
         .expect("failed to set accelerometer range");
     imu2.set_gyroscope_scale(3)
         .expect("failed to set gyroscope range");
     imu1.set_origin_f([0.0, 0.0, 0.01]);
-    imu1.set_rotation_s2f([0.0, 0.0, 0.0, 1.0]);
+    imu1.set_rotation_dcm_s2f([[1.0, 0.0, 0.0],
+                               [0.0, 1.0, 0.0],
+                               [0.0, 0.0, 1.0]]);
     
     let (mut v_xB, mut v_yB, mut v_zB): (f32, f32, f32) = (0., 0., 0.);
     let (r_xB, r_yB, r_zB): (f32, f32, f32) = (0., 0., 0.);

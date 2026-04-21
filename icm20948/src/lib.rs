@@ -6,7 +6,8 @@ use embedded_hal::{
 };
 use imu_traits::{ImuWithAdustableScale, ImuWithRegisterBanks};
 use imu_traits::{
-    Imu
+    Imu,
+    Measurement
 };
 
 mod registers;
@@ -25,29 +26,10 @@ pub struct Icm20948<I2C> {
     address: u8,
     /// position of S origin of IMU in F frame
     origin_f: [f32;3], 
-    /// quaternion rotating from S to F frame
-    rotation_s2f: [f32; 4],
-
+    /// Direction Cosine Matrix rotating from S to F frame
+    rotation_dcm_s2f: [[f32; 3];3],
+    // measured data
     meas: Measurement,
-}
-pub struct Measurement {
-    accelerometer_s_g: (f32,f32,f32),
-    gyroscope_s_dps: (f32,f32,f32),
-}
-impl Measurement {
-    pub fn init() -> Self {
-        Self {
-            accelerometer_s_g: (0.0, 0.0, 0.0),
-            gyroscope_s_dps: (0.0, 0.0, 0.0),
-        }
-    }
-
-    pub fn update_accel_s_g(&mut self, accel: (f32,f32,f32)) {
-        self.accelerometer_s_g = accel;
-    }
-    pub fn update_gyroscope_s_dps(&mut self, gyro: (f32,f32,f32)) {
-        self.gyroscope_s_dps = gyro;
-    }
 }
 
 impl<I2C> Icm20948<I2C> {
@@ -56,17 +38,19 @@ impl<I2C> Icm20948<I2C> {
             i2c, 
             address, 
             origin_f: [0.0;3], 
-            rotation_s2f: [0.0, 0.0, 0.0, 1.0],
+            rotation_dcm_s2f: [[1.0, 0.0, 0.0],
+                               [0.0, 1.0, 0.0],
+                               [0.0, 0.0, 1.0]],
             meas: Measurement::init()
         }
     }
 
-    pub fn new_with_mount(i2c: I2C, address: u8, origin_f: [f32; 3], rotation_s2f: [f32; 4]) -> Self {
+    pub fn new_with_mount(i2c: I2C, address: u8, origin_f: [f32; 3], rotation_s2f: [[f32; 3];3]) -> Self {
         Self {
             i2c, 
             address, 
             origin_f, 
-            rotation_s2f,
+            rotation_dcm_s2f: rotation_s2f,
             meas: Measurement::init()
         }
     }
@@ -82,27 +66,30 @@ where
         self.origin_f
     }
 
-    fn rotation_s2f(&mut self) -> [f32;4] {
-        self.rotation_s2f
+    fn rotation_dcm_s2f(&mut self) -> [[f32;3];3] {
+        self.rotation_dcm_s2f
+    }
+
+    fn meas(&mut self) -> Measurement {
+        self.meas
     }
 
     fn set_origin_f(&mut self, origin: [f32;3]) {
         self.origin_f = origin;
     }
 
-    fn set_rotation_s2f(&mut self, rotation: [f32;4]) {
-        self.rotation_s2f = rotation;
+    fn set_rotation_dcm_s2f(&mut self, rotation: [[f32;3];3]) {
+        self.rotation_dcm_s2f = rotation;
     }
 
-    fn set_mount(&mut self, origin: [f32;3], rotation: [f32;4]) {
+    fn set_mount(&mut self, origin: [f32;3], rotation: [[f32;3];3]) {
         self.set_origin_f(origin);
-        self.set_rotation_s2f(rotation);
+        self.set_rotation_dcm_s2f(rotation);
     }
 
     fn init(&mut self) -> Result<(), Self::Error> {
         self.select_register_bank(PWR_MGMT_1.get_bank())?;
         self.i2c.write(self.address, &[PWR_MGMT_1.addr,0x09])?;
-        // self.i2c.write(self.address,Accel); // Accelerometer settings
         Ok(())
     }
 
@@ -132,7 +119,6 @@ where
         self.meas.update_gyroscope_s_dps(dps);
         Ok(dps)
     }
-
 
     fn read_gyroscope_rps(&mut self) -> Result<(f32,f32,f32), Self::Error> {
         let dps = self.read_gyroscope_dps()?;
