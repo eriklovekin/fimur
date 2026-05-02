@@ -18,3 +18,5 @@ The F frame is the frame in which the output of the filter is represented. The o
 3 Sarabandi, S; Thomas, F - Accurate Computation of Quaternions from Rotation Matrices
 
 4 [Rotation Quaternions, and How to Use Them](https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html)
+
+5 [AHRS Complimenatary Filter](https://ahrs.readthedocs.io/en/latest/filters/complementary.html)

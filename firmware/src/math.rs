@@ -108,3 +108,12 @@ pub fn quaternion_to_dcm(q: [f32;4]) -> [[f32;3];3] {
      [C21, C22, C23],
      [C31, C32, C33]]
 }
+
+/// cross product axb
+pub fn cross(a: [f32;3], b: [f32;3]) -> [f32;3] {
+    [
+        a[1]*b[2] - b[1]*a[2],
+        a[0]*b[2] - b[0]*a[2],
+        a[0]*b[1] - b[0]*a[1]
+    ]
+}
