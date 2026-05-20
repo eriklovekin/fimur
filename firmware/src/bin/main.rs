@@ -30,7 +30,9 @@ use esp_hal::i2c::master::{I2c, Config};
 
 use icm20948::Icm20948;
 use imu_traits::{Imu, ImuWithAdustableScale};
-
+// use fimur::filter::{
+//     Filter,
+// };
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
 esp_bootloader_esp_idf::esp_app_desc!();
@@ -97,6 +99,8 @@ fn main() -> ! {
     imu1.set_rotation_dcm_s2f([[1.0, 0.0, 0.0],
                                [0.0, 1.0, 0.0],
                                [0.0, 0.0, 1.0]]);
+
+    
     
     let (mut v_xB, mut v_yB, mut v_zB): (f32, f32, f32) = (0., 0., 0.);
     let (r_xB, r_yB, r_zB): (f32, f32, f32) = (0., 0., 0.);

@@ -1,5 +1,7 @@
 #![no_std]
 
+pub mod constants;
+
 pub trait Imu {
     type Error;
 
@@ -9,7 +11,7 @@ pub trait Imu {
     /// 
     /// Format [xF, yF, zF]
     /// Units: m
-    fn origin_f(&mut self) -> [f32;3];
+    fn origin_f(&self) -> [f32;3];
 
     // /// Returns rotation vector from S to F frame
     // /// 
@@ -17,12 +19,12 @@ pub trait Imu {
     // fn rotation_s2f(&mut self) -> [f32;4];
 
     /// Returns rotation DCM from S to F frame
-    fn rotation_dcm_s2f(&mut self) -> [[f32;3];3];
+    fn rotation_dcm_s2f(&self) -> [[f32;3];3];
 
     /// Returns most recently measurents from accelerometer and gyroscope
     /// # TODO
     /// Incorporate magnetometer, temperature (and others?) as optional fields
-    fn meas(&mut self) -> Measurement;
+    fn meas(& self) -> Measurement;
 
     /// Set origin of S frame in F frame
     /// 
@@ -218,5 +220,12 @@ impl Measurement {
     }
     pub fn update_gyroscope_s_dps(&mut self, gyro: (f32,f32,f32)) {
         self.gyroscope_s_dps = gyro;
+    }
+
+    pub fn get_accel_s_g(&self) -> [f32;3] {
+        [self.accelerometer_s_g.0, self.accelerometer_s_g.1, self.accelerometer_s_g.2]
+    }
+    pub fn get_gyro_s_dps(&self) -> [f32;3] {
+        [self.gyroscope_s_dps.0, self.gyroscope_s_dps.1, self.gyroscope_s_dps.2]
     }
 }

@@ -7,7 +7,8 @@ use embedded_hal::{
 use imu_traits::{ImuWithAdustableScale, ImuWithRegisterBanks};
 use imu_traits::{
     Imu,
-    Measurement
+    Measurement,
+    constants
 };
 
 mod registers;
@@ -18,7 +19,6 @@ use registers::bank2::*;
 use crate::registers::{BITSHIFT_REG_SELECT, BITSHIFT_SCALE};
 // use registers::bank3::*;
 
-pub mod constants;
 pub mod error;
 
 pub struct Icm20948<I2C> {
@@ -62,15 +62,15 @@ where
 {
     type Error = error::ImuError<E>;
 
-    fn origin_f(&mut self) -> [f32;3] {
+    fn origin_f(&self) -> [f32;3] {
         self.origin_f
     }
 
-    fn rotation_dcm_s2f(&mut self) -> [[f32;3];3] {
+    fn rotation_dcm_s2f(&self) -> [[f32;3];3] {
         self.rotation_dcm_s2f
     }
 
-    fn meas(&mut self) -> Measurement {
+    fn meas(&self) -> Measurement {
         self.meas
     }
 
