@@ -1,4 +1,5 @@
 #![no_std]
+use heapless::String;
 
 pub mod constants;
 
@@ -120,7 +121,7 @@ pub trait Imu {
     /// 
     /// # Return
     /// `attitude` (deg, deg, deg): current attitude as (phi, theta, psi)
-    fn attitude_from_direct_integration(&mut self, attitude: (f32,f32,f32), dt_us: u64) -> Result<(f32,f32,f32), Self::Error>;
+    fn attitude_from_direct_integration(&mut self, attitude: (f32,f32,f32), dt_us: u32) -> Result<(f32,f32,f32), Self::Error>;
 
     /// Estimate current velocity by integrating current accelerometer measurement over specified dt.
     /// 
@@ -132,7 +133,7 @@ pub trait Imu {
     /// 
     /// # Return
     /// `attitude` (deg, deg, deg): current attitude as (phi, theta, psi)
-    fn velocity_from_direct_integration(&mut self, velocity: (f32,f32,f32), dt_us: u64) -> Result<(f32,f32,f32), Self::Error>;
+    fn velocity_from_direct_integration(&mut self, velocity: (f32,f32,f32), dt_us: u32) -> Result<(f32,f32,f32), Self::Error>;
 }
 
 pub trait ImuWithMagnetometer : Imu {
@@ -227,5 +228,13 @@ impl Measurement {
     }
     pub fn get_gyro_s_dps(&self) -> [f32;3] {
         [self.gyroscope_s_dps.0, self.gyroscope_s_dps.1, self.gyroscope_s_dps.2]
+    }
+    pub fn report(&self) -> String<20> {
+        use core::fmt::Write;
+        let mut s: String<20> = String::new();
+        write!(s, "{},{},{},{},{},{},", 
+            self.accelerometer_s_g.0, self.accelerometer_s_g.1, self.accelerometer_s_g.2,
+            self.gyroscope_s_dps.0, self.gyroscope_s_dps.1, self.gyroscope_s_dps.2).unwrap();
+        s
     }
 }

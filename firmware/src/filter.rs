@@ -10,6 +10,12 @@ use libm::{
     sqrtf,
 };
 
+use defmt::{
+    info,
+    panic
+};
+use heapless::format;
+
 use imu_traits::{
     Imu,
 };
@@ -18,9 +24,7 @@ use icm20948:: {
     Icm20948
 };
 
-use embedded_hal::{
-    i2c::I2c,
-};
+use core::result::Result;
 
 use imu_traits::constants::{
     PI
@@ -54,6 +58,25 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
             gyro_est_f_dps: [0.0;3],
             att_est_f_deg:  [0.0;3],
         }
+    }
+
+    pub fn init(&mut self) {
+        for (i,si) in self.sensors.iter_mut().enumerate() {
+            match si.init() {
+                Ok(_) => { info!("imu {} init succeeded!",i);}
+                Err(e) => {
+                    info!("imu {} init failed: {}", i, defmt::Debug2Format(&e));
+                    panic!("Manual panic after init failure");
+                }
+            }
+        }
+    }
+
+    pub fn sensor(&mut self, i:usize) -> &Icm20948<I2C> {
+        if i >= N_IMUS {
+            panic!("attemped to access invalid sensor. index must be < {}", N_IMUS);
+        }
+        &self.sensors[i]
     }
 
     /// Complimentary filter from gyroscope and accelerometer measurements
@@ -170,6 +193,26 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
     /// - s2f: DCM rotating from S to F frame
     pub fn transform_gyro_s2f(&self, gyro_s: [f32;3], s2f: [[f32;3];3]) -> [f32;3] {
         mat_vec_mult(s2f,gyro_s)
+    }
+
+    /// Read accelerometer and gyroscope measurements from all sensors
+    /// 
+    /// Take them all sequentially, assume timing difference is negligible
+    /// 
+    /// # TODO
+    /// Use `?` to pass error messages through. Requires shared error type for all sensors
+    pub fn read_all(&mut self){
+        for (i,si) in self.sensors.iter_mut().enumerate() {
+            si.read_accelerometer_mps2()
+                .unwrap_or_else(|_| panic!("failed to read accelerometer of sensor {}", i));
+            si.read_gyroscope_dps()
+                .unwrap_or_else(|_| panic!("failed to read gyroscope of sensor {}", i));
+        }
+    }
+
+    // Return number of sensors in filter object
+    pub fn get_n_sensors(&self) -> usize {
+        N_IMUS as usize
     }
 
 }

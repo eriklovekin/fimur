@@ -89,6 +89,7 @@ where
 
     fn init(&mut self) -> Result<(), Self::Error> {
         self.select_register_bank(PWR_MGMT_1.get_bank())?;
+        // Autoselect best clock source and disable temperature sensor
         self.i2c.write(self.address, &[PWR_MGMT_1.addr,0x09])?;
         Ok(())
     }
@@ -145,7 +146,7 @@ where
         Ok((raw.0*raw_to_units,raw.1*raw_to_units,raw.2*raw_to_units))
     }
 
-    fn attitude_from_direct_integration(&mut self, attitude: (f32,f32,f32), dt_us: u64) -> Result<(f32,f32,f32), Self::Error> {
+    fn attitude_from_direct_integration(&mut self, attitude: (f32,f32,f32), dt_us: u32) -> Result<(f32,f32,f32), Self::Error> {
         let (d_phi_dt, d_theta_dt, d_psi_dt) = self.read_gyroscope_dps()?;
         // Ok((attitude.0 + (d_phi_dt-9.5)   * (dt_us as f32)/1e6,
         //     attitude.1 + (d_theta_dt-4.5) * (dt_us as f32)/1e6,
@@ -155,7 +156,7 @@ where
             attitude.2 + (d_psi_dt)   * (dt_us as f32)/1e6))
     }
 
-    fn velocity_from_direct_integration(&mut self, velocity: (f32,f32,f32), dt_us: u64) -> Result<(f32,f32,f32), Self::Error> {
+    fn velocity_from_direct_integration(&mut self, velocity: (f32,f32,f32), dt_us: u32) -> Result<(f32,f32,f32), Self::Error> {
         let (ax, ay, az) = self.read_accelerometer_mps2()?;
         Ok((velocity.0 + (ax) * (dt_us as f32)/1e6,
             velocity.1 + (ay) * (dt_us as f32)/1e6,
