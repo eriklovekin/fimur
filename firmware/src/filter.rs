@@ -72,11 +72,11 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         }
     }
 
-    pub fn sensor(&mut self, i:usize) -> &Icm20948<I2C> {
+    pub fn sensor(&mut self, i:usize) -> &mut Icm20948<I2C> {
         if i >= N_IMUS {
             panic!("attemped to access invalid sensor. index must be < {}", N_IMUS);
         }
-        &self.sensors[i]
+        &mut self.sensors[i]
     }
 
     /// Complimentary filter from gyroscope and accelerometer measurements
