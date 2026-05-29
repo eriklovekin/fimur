@@ -229,12 +229,15 @@ impl Measurement {
     pub fn get_gyro_s_dps(&self) -> [f32;3] {
         [self.gyroscope_s_dps.0, self.gyroscope_s_dps.1, self.gyroscope_s_dps.2]
     }
+
+    /// Get last read data as a comma-separated string
+    /// Ignores errors
     pub fn report(&self) -> String<20> {
         use core::fmt::Write;
         let mut s: String<20> = String::new();
         write!(s, "{},{},{},{},{},{},", 
             self.accelerometer_s_g.0, self.accelerometer_s_g.1, self.accelerometer_s_g.2,
-            self.gyroscope_s_dps.0, self.gyroscope_s_dps.1, self.gyroscope_s_dps.2).unwrap();
+            self.gyroscope_s_dps.0, self.gyroscope_s_dps.1, self.gyroscope_s_dps.2).ok();
         s
     }
 }

@@ -1,7 +1,6 @@
 use core::f32::consts::PI;
 
 use defmt::{
-    info,
     panic
 };
 

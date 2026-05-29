@@ -9,14 +9,11 @@
 
 use defmt::{
     info,
-    panic
 };
 use esp_println::println;
 use esp_hal::clock::CpuClock;
 use esp_hal::main;
 use esp_hal::rmt::Rmt;
-// use esp_hal::delay::Delay;
-// use esp_hal::peripherals::Peripherals;
 use esp_hal::time::{Duration, Instant, Rate};
 use core::cell::RefCell;
 use core::fmt::Write;
@@ -60,8 +57,8 @@ fn main() -> ! {
     let i2c_bus = RefCell::new(i2c);
     let i2c_dev1 = RefCellDevice::new(&i2c_bus);
     let i2c_dev2 = RefCellDevice::new(&i2c_bus);
-    let mut imu1 = Icm20948::new(i2c_dev1,0x68);
-    let mut imu2 = Icm20948::new(i2c_dev2,0x69);
+    let imu1 = Icm20948::new(i2c_dev1,0x68);
+    let imu2 = Icm20948::new(i2c_dev2,0x69);
 
     let mut f = Filter::new(loop_duration_us,[imu1, imu2]);
     f.init();
@@ -106,23 +103,11 @@ fn main() -> ! {
 
         // Estimate Position
 
-        let mut a_S0: [f32; 3] = f.sensor(0).meas().get_accel_s_g();
-        let mut w_S0: [f32; 3] = f.sensor(0).meas().get_gyro_s_dps();
-        let mut a_S1: [f32; 3] = f.sensor(1).meas().get_accel_s_g();
-        let mut w_S1: [f32; 3] = f.sensor(1).meas().get_gyro_s_dps();
-
         output.clear();
         write!(output,"{}",timestamp)
             .expect("failed to write timestamp");
-        // for i in 0..f.get_n_sensors() {
-        //     write!(output,f.sensor(i).meas().report());
-        // }
-        write!(output,",{},{},{},{},{},{}", 
-                a_S0[0], a_S0[1], a_S0[2], w_S0[0], w_S0[1], w_S0[2])
-                .expect("failed to write imu1 data");
-        write!(output,",{},{},{},{},{},{}", 
-                a_S1[0], a_S1[1], a_S1[2], w_S1[0], w_S1[1], w_S1[2])
-                .expect("failed to write f.sensor(1) data");
+
+        write!(output,"{}", f.report_raw()).ok();
         println!("{}",output);
         let tmp = color.r;
         color.r = color.b;

@@ -1,5 +1,4 @@
 use crate::math::{
-    wB_to_dquaternion,
     add_arrays,
     mat_vec_mult,
     cross3,
@@ -14,7 +13,6 @@ use defmt::{
     info,
     panic
 };
-use heapless::format;
 
 use imu_traits::{
     Imu,
@@ -24,13 +22,15 @@ use icm20948:: {
     Icm20948
 };
 
-use core::result::Result;
+use heapless::String;
 
+use core::fmt::Write;
 use imu_traits::constants::{
     PI
 };
 
 const N_IMUS: usize = 2; // number of IMUs being used
+const REPORT_RAW_SIZE: usize = 20*N_IMUS;
 
 pub struct Filter <I2C>{
     dt_us: u32,
@@ -213,6 +213,17 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
     // Return number of sensors in filter object
     pub fn get_n_sensors(&self) -> usize {
         N_IMUS as usize
+    }
+
+    /// Get last read data from all sensors as a comma-separated string
+    /// Groups measurements by sensor not by type
+    /// Ignores errors
+    pub fn report_raw(&self) -> String<REPORT_RAW_SIZE> {
+        let mut s: String<REPORT_RAW_SIZE> = String::new();
+        for si in self.sensors.iter() {
+            write!(s,"{}",si.meas().report()).ok();
+        }
+        s
     }
 
 }
