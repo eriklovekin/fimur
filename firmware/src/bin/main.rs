@@ -100,6 +100,7 @@ fn main() -> ! {
         f.read_all();
 
         // Estimate Attitude
+        f.complimentary_filter_attitude(0.5);
 
         // Estimate Position
 

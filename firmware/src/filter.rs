@@ -30,7 +30,16 @@ use imu_traits::constants::{
 };
 
 const N_IMUS: usize = 2; // number of IMUs being used
-const REPORT_RAW_SIZE: usize = 20*N_IMUS;
+/// two sig figs and a comma
+const F32_SIZE: usize = 5;
+/// six floats and six commas for each IMU
+const REPORT_RAW_SIZE: usize = 6*F32_SIZE*N_IMUS; 
+/// three floats for each set of 3DoF (rotational, translational)
+const REPORT_EST_3DOF_SIZE: usize = 3*F32_SIZE;
+// /// size of report of current estimated pose
+// const REPORT_EST_POSE_SIZE: usize = 2*REPORT_EST_3DOF_SIZE;
+/// size of full report of current estimated state
+const REPORT_EST_STATE_SIZE: usize = 4*REPORT_EST_3DOF_SIZE;
 
 pub struct Filter <I2C>{
     dt_us: u32,
@@ -41,10 +50,14 @@ pub struct Filter <I2C>{
     last_gyro_f_dps:    [[f32;3];N_IMUS],
     /// Current estimate of accelerations in F frame [g]
     accel_est_f_g:      [f32;3], 
+    /// Current estimate of velocity in L frame [m/s]
+    v_est_l_mps:        [f32;3],
+    /// Current estimate of position in L frame [m]
+    r_est_l_m:          [f32;3],
     /// Current estimate of angular rates in F frame [deg/s]
-    gyro_est_f_dps:     [f32;3],
+    w_est_f_dps:        [f32;3],
     /// Current estimate of attitude [deg]
-    att_est_f_deg:      [f32;3]
+    att_est_f_deg:      [f32;3],
 }
 
 impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
@@ -52,10 +65,12 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         Self {
             dt_us: dt_us,
             sensors: s,
-            last_accel_f_g: [[0.0;3];N_IMUS],
+            last_accel_f_g:   [[0.0;3];N_IMUS],
             last_gyro_f_dps:  [[0.0;3];N_IMUS],
             accel_est_f_g:  [0.0;3],
-            gyro_est_f_dps: [0.0;3],
+            v_est_l_mps:    [0.0;3],
+            r_est_l_m:      [0.0;3],
+            w_est_f_dps:    [0.0;3],
             att_est_f_deg:  [0.0;3],
         }
     }
@@ -162,7 +177,7 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
 
     /// For an Imu object, transform its accelerometer measurement into the F frame
     pub fn transform_imu_accel_s2f(&self, imu: &Icm20948<I2C>) -> [f32;3] {
-        self.transform_accel_s2f(imu.meas().get_accel_s_g(),imu.rotation_dcm_s2f(),imu.origin_f(),self.gyro_est_f_dps,self.accel_est_f_g)
+        self.transform_accel_s2f(imu.meas().get_accel_s_g(),imu.rotation_dcm_s2f(),imu.origin_f(),self.w_est_f_dps,self.accel_est_f_g)
     }
 
     /// From a 3-axis accelerometer measurement in an S frame, calculate the measurement in the F frame
@@ -223,6 +238,62 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         for si in self.sensors.iter() {
             write!(s,"{}",si.meas().report()).ok();
         }
+        s
+    }
+
+    /// Get last velocity estimate in L frame (m/s)
+    pub fn report_est_velocity(&self) -> String<REPORT_EST_3DOF_SIZE> {
+        let mut s: String<REPORT_EST_3DOF_SIZE> = String::new();
+        write!(s,"{},{},{},",
+            self.v_est_l_mps[0],
+            self.v_est_l_mps[1],
+            self.v_est_l_mps[2]
+        ).ok();
+        s
+    }
+
+    /// Get last position estimate in L frame (m)
+    pub fn report_est_position(&self) -> String<REPORT_EST_3DOF_SIZE> {
+        let mut s: String<REPORT_EST_3DOF_SIZE> = String::new();
+        write!(s,"{},{},{},",
+            self.r_est_l_m[0],
+            self.r_est_l_m[1],
+            self.r_est_l_m[2]
+        ).ok();
+        s
+    }
+
+    /// Get last angular rate estimate in F frame (deg/s)
+    pub fn report_est_w(&self) -> String<REPORT_EST_3DOF_SIZE> {
+        let mut s: String<REPORT_EST_3DOF_SIZE> = String::new();
+        write!(s,"{},{},{},",
+            self.w_est_f_dps[0],
+            self.w_est_f_dps[1],
+            self.w_est_f_dps[2]
+        ).ok();
+        s
+    }
+
+    /// Get last attitude estimate in F frame (deg)
+    pub fn report_est_attitude(&self) -> String<REPORT_EST_3DOF_SIZE> {
+        let mut s: String<REPORT_EST_3DOF_SIZE> = String::new();
+        write!(s,"{},{},{},",
+            self.att_est_f_deg[0],
+            self.att_est_f_deg[1],
+            self.att_est_f_deg[2]
+        ).ok();
+        s
+    }
+
+    /// Get last estimate of state as \[re,rn,ru,ve,vn,vu,thetax,thetay,thetaz,wx,wy,xz\] (m,m/s,deg,deg/s)
+    pub fn report_est_state(&self) -> String<REPORT_EST_STATE_SIZE> {
+        let mut s: String<REPORT_EST_STATE_SIZE> = String::new();
+        write!(s,"{}{}{}{}",
+            self.report_est_position(),
+            self.report_est_velocity(),
+            self.report_est_attitude(),
+            self.report_est_w(),
+        ).ok();
         s
     }
 
