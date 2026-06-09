@@ -10,6 +10,20 @@ The F frame is the frame in which the output of the filter is represented. The o
     Origin: position of the S origin of the IMU as (x_F, y_F, z_F)
     Rotation: Direction cosine matrix from IMU S frame to F frame
 
+### Wake (W)
+The W frame is an inertial frame colocated with the F frame at filter startup (wake). It does not move with the sensor, and is the frame in which position estimates are represented.
+
+### ENU (L)
+The ENU frame is an inertial frame with origin colocated with the Filter frame origin.
+
+## Filters
+
+### 1: Intuitive Filter
+Naive filter that implements my intuition about how a filter should work
+
+![Intuitive Filter Flow Diagram](assets/img/intuitive-filter-flow-diagram.png)
+*Figure 1: Flow diagram of Intuitive Filter*
+
 ## References
 1 [Interactive Kalman Filter Tutorial](https://arthurlovekin.com/interactive-kalman-filter/index.html)
 
