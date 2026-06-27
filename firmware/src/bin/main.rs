@@ -10,6 +10,7 @@
 use defmt::{
     info,
 };
+// use esp_hal::lp_core::LpCoreClockSource;
 use esp_println::println;
 use esp_hal::clock::CpuClock;
 use esp_hal::main;
@@ -81,6 +82,8 @@ fn main() -> ! {
     f.sensor(0).set_rotation_dcm_s2f([  [1.0, 0.0, 0.0],
                                         [0.0, 1.0, 0.0],
                                         [0.0, 0.0, 1.0]]);
+
+    f.init_default_kinematics();                        
 
     let mut led_buf = smart_led_buffer!(1);
     let mut led = SmartLedsAdapter::new(rmt.channel0, _peripherals.GPIO8, &mut led_buf);

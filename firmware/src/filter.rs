@@ -4,6 +4,10 @@ use crate::math::{
     cross3,
 };
 
+use nalgebra::{
+    SMatrix,
+};
+
 use libm::{
     atan2f,
     sqrtf,
@@ -58,6 +62,12 @@ pub struct Filter <I2C>{
     w_est_f_dps:        [f32;3],
     /// Current estimate of attitude [deg]
     att_est_f_deg:      [f32;3],
+    /// State
+    state:      SMatrix<f32,12,12>,
+    /// Covariance Matrix
+    covariance: SMatrix<f32,12,12>,
+    /// State transition matrix
+    state_transition_matrix: SMatrix<f32,12,12>,
 }
 
 impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
@@ -72,6 +82,9 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
             r_est_l_m:      [0.0;3],
             w_est_f_dps:    [0.0;3],
             att_est_f_deg:  [0.0;3],
+            state:          SMatrix::zeros(),
+            covariance:     SMatrix::identity(), // placeholder until more accurate P0 is implemented
+            state_transition_matrix:     SMatrix::zeros(),
         }
     }
 
@@ -92,6 +105,33 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
             panic!("attemped to access invalid sensor. index must be < {}", N_IMUS);
         }
         &mut self.sensors[i]
+    }
+
+    pub fn init_default_kinematics(&mut self) {
+        let dt = (self.dt_us as f32) /1.0e6;
+        let a = [
+            [1.0, 0.0, 0.0, dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0, dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0, dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            
+            [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, dt, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, dt, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, dt],
+
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+        ];
+        self.state_transition_matrix = SMatrix::from_fn(|i,j| a[i][j]);
+    }
+
+    pub fn update_gaussian_from_kinematics(&mut self) {
+        self.state = self.state_transition_matrix * self.state;
+        self.covariance = self.state_transition_matrix * self.covariance * self.state_transition_matrix.transpose();
     }
 
     /// Complimentary filter from gyroscope and accelerometer measurements
@@ -121,6 +161,36 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
             ];
         let att_accel_f_deg: [f32;3] = att_accel_f_rad.map(|x| x*180.0/PI);
         add_arrays(att_gyro_f_deg.map(|x| x*a),att_accel_f_deg.map(|x| x*(1.0-a)))
+    }
+
+    /// Intuitive Filter
+    pub fn intuitive_filter(&mut self) {
+        // Step 1: Read new data
+        self.read_all();
+
+        // Step 2: Transform angular rates to F frame
+        self.transform_all_gyro_s2f();
+
+        // Step 3: Find mean of angular rates. Treat this as truth
+        self.w_est_f_dps = self.average_filter(self.last_gyro_f_dps);
+
+        // Step 4: Integrate to get attitude
+        self.att_est_f_deg = self.w_est_f_dps.map(|x| x*(self.dt_us as f32)*1.0e-6);
+
+        // Step 5: transform measured accelerations to F frame
+        self.transform_all_accel_s2f();
+
+        // Step 6: find mean of accelerations. Treat this as truth
+        self.accel_est_f_g = self.average_filter(self.last_accel_f_g);
+
+        // Step 7: transform F accelerations into L frame
+        // let acc_est_l_g = math::
+
+        // Step 8: Integrate L accelerations to find velocity
+        // self.v_est_l_mps = 
+
+        // Step 9: Integrate L velocities to find position
+
     }
 
     /// Average of M N-axis sensors
@@ -225,7 +295,7 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         }
     }
 
-    // Return number of sensors in filter object
+    /// Return number of sensors in filter object
     pub fn get_n_sensors(&self) -> usize {
         N_IMUS as usize
     }
