@@ -34,3 +34,7 @@ Naive filter that implements my intuition about how a filter should work
 4 [Rotation Quaternions, and How to Use Them](https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html)
 
 5 [AHRS Complimenatary Filter](https://ahrs.readthedocs.io/en/latest/filters/complementary.html)
+
+6 [Building a Virtual Gyro](https://www.nxp.com/company/about-nxp/smarter-world-blog/BL-BUILDING-VIRTUAL-GYRO)
+
+7 [Gauss Markov Theorem](https://www.statlect.com/fundamentals-of-statistics/Gauss-Markov-theorem)

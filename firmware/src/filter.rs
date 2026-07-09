@@ -68,6 +68,7 @@ pub struct Filter <I2C>{
     covariance: SMatrix<f32,12,12>,
     /// State transition matrix
     state_transition_matrix: SMatrix<f32,12,12>,
+    process_noise_covariance: SMatrix<f32,12,12>,
 }
 
 impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
@@ -84,7 +85,8 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
             att_est_f_deg:  [0.0;3],
             state:          SMatrix::zeros(),
             covariance:     SMatrix::identity(), // placeholder until more accurate P0 is implemented
-            state_transition_matrix:     SMatrix::zeros(),
+            state_transition_matrix:    SMatrix::zeros(),
+            process_noise_covariance:   SMatrix::zeros(),
         }
     }
 
@@ -129,9 +131,54 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         self.state_transition_matrix = SMatrix::from_fn(|i,j| a[i][j]);
     }
 
-    pub fn update_gaussian_from_kinematics(&mut self) {
+    /// Construct a process noise covariance matrix that assumes 
+    /// translation and rotation are decoupled.
+    pub fn init_block_process_noise_covariance(&mut self) {
+        let dt = (self.dt_us as f32) /1.0e6;
+        // assume process noise is isotropic
+        let std_accel: f32 = 1.0; // standard deviation of process acceleration noise; m/s^2
+        let std_alpha: f32 = 0.1; // standard deviation of process angular acceleration noise; g
+        let mut q = SMatrix::<f32,12,12>::zeros();
+        let dt2 = dt * dt;
+        let dt3 = dt * dt * dt;
+        let dt4 = dt * dt * dt * dt;
+        
+        let q_block =  [
+            [dt4/4.0,       0.0,        0.0,    dt3/2.0,        0.0,        0.0],
+            [    0.0,   dt4/4.0,        0.0,        0.0,    dt3/2.0,        0.0],
+            [    0.0,       0.0,    dt4/4.0,        0.0,        0.0,    dt3/2.0],
+            
+            [dt3/2.0,        0.0,        0.0,       dt2, 0.0, 0.0],
+            [    0.0,    dt3/2.0,        0.0,       0.0, dt2, 0.0],
+            [    0.0,        0.0,    dt3/2.0,       0.0, 0.0, dt2],
+        ];
+        let q_block_trans = 
+            SMatrix::<f32,6,6>::from_fn(|i,j| 
+                std_accel*std_accel*q_block[i][j]);
+        let q_block_rot   = 
+            SMatrix::<f32,6,6>::from_fn(|i,j| 
+                std_alpha*std_alpha*q_block[i][j]);
+        for i in 0..12 {
+            for j in 0..12 {
+                if i < 6 && j < 6 {
+                    q[(i,j)] = q_block_trans[(i,j)];
+                } else if i >= 6 && j >= 6 {
+                    q[(i,j)] = q_block_rot[(i,j)];
+
+                }
+            }
+        }
+        self.process_noise_covariance = SMatrix::from_fn(|i,j| q[(i,j)]);
+    }
+
+    /// Kalman Filter predict step:
+    /// x_k = A*X_k-1 + B*u_k
+    /// P_k = A*P_k-1*A_T + Q
+    pub fn kalman_predict(&mut self) {
         self.state = self.state_transition_matrix * self.state;
-        self.covariance = self.state_transition_matrix * self.covariance * self.state_transition_matrix.transpose();
+        // Assuming no proccess noise for now
+        self.covariance = self.state_transition_matrix * self.covariance * self.state_transition_matrix.transpose()
+                            + self.process_noise_covariance;
     }
 
     /// Complimentary filter from gyroscope and accelerometer measurements
@@ -191,6 +238,26 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
 
         // Step 9: Integrate L velocities to find position
 
+    }
+
+    /// Assume that:
+    /// - IMUs are colocated and aligned
+    /// - Identical sensors
+    /// # Return
+    /// average of all measurements from all sensors
+    pub fn most_naive_filter_possible(&mut self) {
+        let mut state = [[0.0f32;6];N_IMUS];
+        for (i, si) in self.sensors.iter().enumerate() {
+            let accel = si.meas().get_accel_s_g();
+            let gyro = si.meas().get_gyro_s_dps();
+            for j in 0..accel.len() {
+                state[i][j] = accel[j];
+                state[i][j+3] = gyro[j];
+            }
+        }
+        let avg_state = self.average_filter(state);
+        self.accel_est_f_g = [avg_state[0],avg_state[1],avg_state[2]];
+        self.w_est_f_dps = [avg_state[3],avg_state[4],avg_state[5]];
     }
 
     /// Average of M N-axis sensors
@@ -308,6 +375,31 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         for si in self.sensors.iter() {
             write!(s,"{}",si.meas().report()).ok();
         }
+        s
+    }
+
+    /// Get the last virtual measurement of the filter
+    /// accel_x, accel_y, accel_z, gyro_x, gyro_y, gyroz
+    /// Ignores errors
+    pub fn report_virtual_meas(&self) -> String<{2*REPORT_EST_3DOF_SIZE}> {
+        let mut s: String<{2*REPORT_EST_3DOF_SIZE}> = String::new();
+        write!(s,"{}{}",
+            self.report_est_accel(),
+            self.report_est_w(),
+        ).ok();
+        s
+    }
+
+    /// Get last estimated acceleration as a comma-separated string
+    /// Groups measurements by sensor not by type
+    /// Ignores errors
+    pub fn report_est_accel(&self) -> String<REPORT_EST_3DOF_SIZE> {
+        let mut s: String<REPORT_EST_3DOF_SIZE> = String::new();
+        write!(s,"{},{},{},",
+            self.accel_est_f_g[0],
+            self.accel_est_f_g[1],
+            self.accel_est_f_g[2]
+        ).ok();
         s
     }
 
