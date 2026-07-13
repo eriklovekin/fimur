@@ -369,9 +369,10 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
 
     /// Get last read data from all sensors as a comma-separated string
     /// Groups measurements by sensor not by type
+    /// ex. "accel1_x,accel1_y,accel1_z,gyro1_x,gyro1_y,gyro1_z,accel2_x,..."
     /// Ignores errors
-    pub fn report_raw(&self) -> String<REPORT_RAW_SIZE> {
-        let mut s: String<REPORT_RAW_SIZE> = String::new();
+    pub fn report_raw(&self) -> String<512> {
+        let mut s: String<512> = String::new();
         for si in self.sensors.iter() {
             write!(s,"{}",si.meas().report()).ok();
         }

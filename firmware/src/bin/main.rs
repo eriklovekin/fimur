@@ -84,7 +84,7 @@ fn main() -> ! {
                                         [0.0, 0.0, 1.0]]);
 
     f.init_default_kinematics();   
-    f.init_block_process_noise_covariance();                     
+    // f.init_block_process_noise_covariance();                     
 
     let mut led_buf = smart_led_buffer!(1);
     let mut led = SmartLedsAdapter::new(rmt.channel0, _peripherals.GPIO8, &mut led_buf);
@@ -104,13 +104,12 @@ fn main() -> ! {
         f.read_all();
 
         // Estimate virtual measurements
-        f.most_naive_filter_possible();
+        // f.most_naive_filter_possible();
 
         // Estimate Position
-
         output.clear();
-        write!(output,"{}",timestamp).ok();
-        write!(output,"{}", f.report_virtual_meas()).ok();
+        write!(output,"{},",timestamp).ok();
+        write!(output,"{}", f.report_raw()).ok();
         println!("{}",output);
         let tmp = color.r;
         color.r = color.b;
