@@ -24,6 +24,21 @@ Naive filter that implements my intuition about how a filter should work
 ![Intuitive Filter Flow Diagram](assets/img/intuitive-filter-flow-diagram.png)
 *Figure 1: Flow diagram of Intuitive Filter*
 
+### Dependencies
+
+## Python
+Running with python 3.12.3
+Ensure the following libraries are installed using `pip install <library>`
+- serial
+- pyserial
+- pandas
+- numpy
+- pyqtgraph
+- pyside6
+### PyQt
+- `sudo apt update`
+- `sudo apt install libxcb-cursor0`
+
 ## References
 1 [Interactive Kalman Filter Tutorial](https://arthurlovekin.com/interactive-kalman-filter/index.html)
 
