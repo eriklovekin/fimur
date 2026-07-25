@@ -53,3 +53,5 @@ Ensure the following libraries are installed using `pip install <library>`
 6 [Building a Virtual Gyro](https://www.nxp.com/company/about-nxp/smarter-world-blog/BL-BUILDING-VIRTUAL-GYRO)
 
 7 [Gauss Markov Theorem](https://www.statlect.com/fundamentals-of-statistics/Gauss-Markov-theorem)
+
+8 [Sensor Fusion for Distributed Inertial Measurement Units](https://hollydinkel.github.io/assets/pdf/AAS2025.pdf)
