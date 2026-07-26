@@ -60,38 +60,55 @@ fn main() -> ! {
     // RefCell needed so multiple multiplexers or I2C devices can share the same bus
     let i2c_bus = RefCell::new(i2c);
 
-    let switch_address = SlaveAddr::Alternative(false,false,false);
+    // let switch_address = SlaveAddr::Alternative(false,false,false);
+    let switch_address = SlaveAddr::default();
     let i2c_switch = Xca9548a::new(RefCellDevice::new(&i2c_bus), switch_address);
     let parts = i2c_switch.split();
     
     // RefCell needed so multiple devices can share the same channel of the multiplexer
     let ch0_bus = RefCell::new(parts.i2c0);
-    
-    let imu1 = Icm20948::new(RefCellDevice::new(&ch0_bus),0x68); // multiplexer address pins all 0; connected ot CH1
+    let ch1_bus = RefCell::new(parts.i2c1);
+    let ch2_bus = RefCell::new(parts.i2c2);
+    // let ch_bus = RefCell::new(parts.i2c7);
+    let imu1 = Icm20948::new(RefCellDevice::new(&ch0_bus),0x68);
     let imu2 = Icm20948::new(RefCellDevice::new(&ch0_bus),0x69);
+    let imu3 = Icm20948::new(RefCellDevice::new(&ch1_bus),0x68);
+    let imu4 = Icm20948::new(RefCellDevice::new(&ch1_bus),0x69);
+    let imu5 = Icm20948::new(RefCellDevice::new(&ch2_bus),0x68);
+    let imu6 = Icm20948::new(RefCellDevice::new(&ch2_bus),0x69);
 
-    let mut f = Filter::new(loop_duration_us,[imu1, imu2]);
+    let mut f = Filter::new(loop_duration_us,[imu1, imu4, imu5, imu6]);
     f.init();
     
-    // IMU1 is on top of stack
-    f.sensor(0).set_accelerometer_scale(3)
-        .expect("failed to set accelerometer range");
-    f.sensor(0).set_gyroscope_scale(3)
-        .expect("failed to set gyroscope range");
-    f.sensor(0).set_origin_f([0.0, 0.0, 0.0]);
-    f.sensor(0).set_rotation_dcm_s2f([  [1.0, 0.0, 0.0],
+    // // IMU1 is on top of stack
+    // f.sensor(0).set_accelerometer_scale(3)
+    //     .expect("failed to set accelerometer range");
+    // f.sensor(0).set_gyroscope_scale(3)
+    //     .expect("failed to set gyroscope range");
+    // f.sensor(0).set_origin_f([0.0, 0.0, 0.0]);
+    // f.sensor(0).set_rotation_dcm_s2f([  [1.0, 0.0, 0.0],
+    //                                     [0.0, 1.0, 0.0],
+    //                                     [0.0, 0.0, 1.0]]);
+
+    // f.sensor(1).set_accelerometer_scale(3)
+    //     .expect("failed to set accelerometer range");
+    // f.sensor(1).set_gyroscope_scale(3)
+    //     .expect("failed to set gyroscope range");
+    // f.sensor(1).set_origin_f([0.0, 0.0, 0.01]);
+    // f.sensor(1).set_rotation_dcm_s2f([  [1.0, 0.0, 0.0],
+    //                                     [0.0, 1.0, 0.0],
+    //                                     [0.0, 0.0, 1.0]]);
+
+    for s in 0..f.get_n_sensors() {
+        f.sensor(s).set_accelerometer_scale(3)
+            .expect("failed to set accelerometer range");
+        f.sensor(s).set_gyroscope_scale(3)
+            .expect("failed to set gyroscope range");
+        f.sensor(s).set_origin_f([0.0, 0.0, 0.01]);
+        f.sensor(s).set_rotation_dcm_s2f([  [1.0, 0.0, 0.0],
                                         [0.0, 1.0, 0.0],
                                         [0.0, 0.0, 1.0]]);
-
-    f.sensor(1).set_accelerometer_scale(3)
-        .expect("failed to set accelerometer range");
-    f.sensor(1).set_gyroscope_scale(3)
-        .expect("failed to set gyroscope range");
-    f.sensor(0).set_origin_f([0.0, 0.0, 0.01]);
-    f.sensor(0).set_rotation_dcm_s2f([  [1.0, 0.0, 0.0],
-                                        [0.0, 1.0, 0.0],
-                                        [0.0, 0.0, 1.0]]);
-
+    }
     f.init_default_kinematics();   
     // f.init_block_process_noise_covariance();                     
 

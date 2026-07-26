@@ -33,7 +33,7 @@ use imu_traits::constants::{
     PI
 };
 
-const N_IMUS: usize = 2; // number of IMUs being used
+const N_IMUS: usize = 4; // number of IMUs being used
 /// two sig figs and a comma
 const F32_SIZE: usize = 5;
 /// six floats and six commas for each IMU
@@ -73,6 +73,8 @@ pub struct Filter <I2C>{
 
 impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
     pub fn new(dt_us:u32, s: [Icm20948<I2C>; N_IMUS]) -> Self {
+        info!("imu mem size: {}",core::mem::size_of::<Icm20948<I2C>>());
+        info!("filter mem size: {}",core::mem::size_of::<Filter<I2C>>());
         Self {
             dt_us: dt_us,
             sensors: s,
