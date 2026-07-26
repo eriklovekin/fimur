@@ -232,6 +232,9 @@ impl Measurement {
 
     /// Get last read data as a comma-separated string
     /// Ignores errors
+    /// Units:
+    /// Accel: g
+    /// Gyro: deg/s
     pub fn report(&self) -> String<128> {
         use core::fmt::Write;
         let mut s: String<128> = String::new();

@@ -31,6 +31,8 @@ use imu_traits::{Imu, ImuWithAdustableScale};
 use fimur::filter::{
     Filter,
 };
+
+use xca9548a::{Xca9548a, SlaveAddr};
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
 esp_bootloader_esp_idf::esp_app_desc!();
@@ -55,11 +57,18 @@ fn main() -> ! {
         .expect("Failed to initialize i2c")
         .with_sda(_peripherals.GPIO2)
         .with_scl(_peripherals.GPIO3);
+    // RefCell needed so multiple multiplexers or I2C devices can share the same bus
     let i2c_bus = RefCell::new(i2c);
-    let i2c_dev1 = RefCellDevice::new(&i2c_bus);
-    let i2c_dev2 = RefCellDevice::new(&i2c_bus);
-    let imu1 = Icm20948::new(i2c_dev1,0x68);
-    let imu2 = Icm20948::new(i2c_dev2,0x69);
+
+    let switch_address = SlaveAddr::Alternative(false,false,false);
+    let i2c_switch = Xca9548a::new(RefCellDevice::new(&i2c_bus), switch_address);
+    let parts = i2c_switch.split();
+    
+    // RefCell needed so multiple devices can share the same channel of the multiplexer
+    let ch0_bus = RefCell::new(parts.i2c0);
+    
+    let imu1 = Icm20948::new(RefCellDevice::new(&ch0_bus),0x68); // multiplexer address pins all 0; connected ot CH1
+    let imu2 = Icm20948::new(RefCellDevice::new(&ch0_bus),0x69);
 
     let mut f = Filter::new(loop_duration_us,[imu1, imu2]);
     f.init();

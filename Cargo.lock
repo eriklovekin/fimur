@@ -693,6 +693,7 @@ dependencies = [
  "libm",
  "nalgebra",
  "smart-leds",
+ "xca9548a",
 ]
 
 [[package]]
@@ -1600,6 +1601,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a5364e9d77fcdeeaa6062ced926ee3381faa2ee02d3eb83a5c27a8825540829"
 dependencies = [
  "memchr",
+]
+
+[[package]]
+name = "xca9548a"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "df94495e7f28d551b72b2bf5304267fbb0075d78b182b49fbfb74f8910d63fec"
+dependencies = [
+ "embedded-hal 1.0.0",
 ]
 
 [[package]]
