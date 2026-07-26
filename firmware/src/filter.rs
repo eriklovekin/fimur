@@ -35,7 +35,7 @@ use imu_traits::constants::{
 
 const N_IMUS: usize = 12; // number of IMUs being used
 /// two sig figs and a comma
-const F32_SIZE: usize = 5;
+const F32_SIZE: usize = 12;
 /// six floats and six commas for each IMU
 const REPORT_RAW_SIZE: usize = 6*F32_SIZE*N_IMUS; 
 /// three floats for each set of 3DoF (rotational, translational)
@@ -373,8 +373,8 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
     /// Groups measurements by sensor not by type
     /// ex. "accel1_x,accel1_y,accel1_z,gyro1_x,gyro1_y,gyro1_z,accel2_x,..."
     /// Ignores errors
-    pub fn report_raw(&self) -> String<512> {
-        let mut s: String<512> = String::new();
+    pub fn report_raw(&self) -> String<REPORT_RAW_SIZE> {
+        let mut s: String<REPORT_RAW_SIZE> = String::new();
         for si in self.sensors.iter() {
             write!(s,"{}",si.meas().report()).ok();
         }
