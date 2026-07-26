@@ -19,7 +19,7 @@ I2C Breakout for two ICM20948 9-axis IMUs
     Future Work: should be able to daisychain all IMUs on this line to synchronize sample times
 
 ### v0.1.1
-Works
+Works. Should add some capacitors to the 1.8V power supply as per spec sheet.
 
 ## Multiplexer Interface (x.2.x)
 Connects ESP32 with TCA9548A I2C multiplexer.
