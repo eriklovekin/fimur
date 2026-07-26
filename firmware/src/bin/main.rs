@@ -69,6 +69,9 @@ fn main() -> ! {
     let ch0_bus = RefCell::new(parts.i2c0);
     let ch1_bus = RefCell::new(parts.i2c1);
     let ch2_bus = RefCell::new(parts.i2c2);
+    let ch3_bus = RefCell::new(parts.i2c3);
+    let ch4_bus = RefCell::new(parts.i2c4);
+    let ch5_bus = RefCell::new(parts.i2c5);
     // let ch_bus = RefCell::new(parts.i2c7);
     let imu1 = Icm20948::new(RefCellDevice::new(&ch0_bus),0x68);
     let imu2 = Icm20948::new(RefCellDevice::new(&ch0_bus),0x69);
@@ -76,8 +79,14 @@ fn main() -> ! {
     let imu4 = Icm20948::new(RefCellDevice::new(&ch1_bus),0x69);
     let imu5 = Icm20948::new(RefCellDevice::new(&ch2_bus),0x68);
     let imu6 = Icm20948::new(RefCellDevice::new(&ch2_bus),0x69);
+    let imu7 = Icm20948::new(RefCellDevice::new(&ch3_bus),0x68);
+    let imu8 = Icm20948::new(RefCellDevice::new(&ch3_bus),0x69);
+    let imu9 = Icm20948::new(RefCellDevice::new(&ch4_bus),0x68);
+    let imu10 = Icm20948::new(RefCellDevice::new(&ch4_bus),0x69);
+    let imu11 = Icm20948::new(RefCellDevice::new(&ch5_bus),0x68);
+    let imu12 = Icm20948::new(RefCellDevice::new(&ch5_bus),0x69);
 
-    let mut f = Filter::new(loop_duration_us,[imu1, imu4, imu5, imu6]);
+    let mut f = Filter::new(loop_duration_us,[imu1, imu2, imu3, imu4, imu5, imu6, imu7, imu8, imu9, imu10, imu11, imu12]);
     f.init();
     
     // // IMU1 is on top of stack
@@ -109,7 +118,7 @@ fn main() -> ! {
                                         [0.0, 1.0, 0.0],
                                         [0.0, 0.0, 1.0]]);
     }
-    f.init_default_kinematics();   
+    // f.init_default_kinematics();   
     // f.init_block_process_noise_covariance();                     
 
     let mut led_buf = smart_led_buffer!(1);

@@ -33,7 +33,7 @@ use imu_traits::constants::{
     PI
 };
 
-const N_IMUS: usize = 4; // number of IMUs being used
+const N_IMUS: usize = 12; // number of IMUs being used
 /// two sig figs and a comma
 const F32_SIZE: usize = 5;
 /// six floats and six commas for each IMU
@@ -62,13 +62,13 @@ pub struct Filter <I2C>{
     w_est_f_dps:        [f32;3],
     /// Current estimate of attitude [deg]
     att_est_f_deg:      [f32;3],
-    /// State
-    state:      SMatrix<f32,12,12>,
-    /// Covariance Matrix
-    covariance: SMatrix<f32,12,12>,
-    /// State transition matrix
-    state_transition_matrix: SMatrix<f32,12,12>,
-    process_noise_covariance: SMatrix<f32,12,12>,
+    // /// State
+    // state:      SMatrix<f32,12,12>,
+    // /// Covariance Matrix
+    // covariance: SMatrix<f32,12,12>,
+    // /// State transition matrix
+    // state_transition_matrix: SMatrix<f32,12,12>,
+    // process_noise_covariance: SMatrix<f32,12,12>,
 }
 
 impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
@@ -85,10 +85,10 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
             r_est_l_m:      [0.0;3],
             w_est_f_dps:    [0.0;3],
             att_est_f_deg:  [0.0;3],
-            state:          SMatrix::zeros(),
-            covariance:     SMatrix::identity(), // placeholder until more accurate P0 is implemented
-            state_transition_matrix:    SMatrix::zeros(),
-            process_noise_covariance:   SMatrix::zeros(),
+            // state:          SMatrix::zeros(),
+            // covariance:     SMatrix::identity(), // placeholder until more accurate P0 is implemented
+            // state_transition_matrix:    SMatrix::zeros(),
+            // process_noise_covariance:   SMatrix::zeros(),
         }
     }
 
@@ -111,77 +111,77 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         &mut self.sensors[i]
     }
 
-    pub fn init_default_kinematics(&mut self) {
-        let dt = (self.dt_us as f32) /1.0e6;
-        let a = [
-            [1.0, 0.0, 0.0, dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0, 0.0, dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [0.0, 0.0, 1.0, 0.0, 0.0, dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    // pub fn init_default_kinematics(&mut self) {
+    //     let dt = (self.dt_us as f32) /1.0e6;
+    //     let a = [
+    //         [1.0, 0.0, 0.0, dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    //         [0.0, 1.0, 0.0, 0.0, dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    //         [0.0, 0.0, 1.0, 0.0, 0.0, dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             
-            [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    //         [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    //         [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    //         [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
 
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, dt, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, dt, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, dt],
+    //         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, dt, 0.0, 0.0],
+    //         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, dt, 0.0],
+    //         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, dt],
 
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-        ];
-        self.state_transition_matrix = SMatrix::from_fn(|i,j| a[i][j]);
-    }
+    //         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+    //         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+    //         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+    //     ];
+    //     self.state_transition_matrix = SMatrix::from_fn(|i,j| a[i][j]);
+    // }
 
-    /// Construct a process noise covariance matrix that assumes 
-    /// translation and rotation are decoupled.
-    pub fn init_block_process_noise_covariance(&mut self) {
-        let dt = (self.dt_us as f32) /1.0e6;
-        // assume process noise is isotropic
-        let std_accel: f32 = 1.0; // standard deviation of process acceleration noise; m/s^2
-        let std_alpha: f32 = 0.1; // standard deviation of process angular acceleration noise; g
-        let mut q = SMatrix::<f32,12,12>::zeros();
-        let dt2 = dt * dt;
-        let dt3 = dt * dt * dt;
-        let dt4 = dt * dt * dt * dt;
+    // /// Construct a process noise covariance matrix that assumes 
+    // /// translation and rotation are decoupled.
+    // pub fn init_block_process_noise_covariance(&mut self) {
+    //     let dt = (self.dt_us as f32) /1.0e6;
+    //     // assume process noise is isotropic
+    //     let std_accel: f32 = 1.0; // standard deviation of process acceleration noise; m/s^2
+    //     let std_alpha: f32 = 0.1; // standard deviation of process angular acceleration noise; g
+    //     let mut q = SMatrix::<f32,12,12>::zeros();
+    //     let dt2 = dt * dt;
+    //     let dt3 = dt * dt * dt;
+    //     let dt4 = dt * dt * dt * dt;
         
-        let q_block =  [
-            [dt4/4.0,       0.0,        0.0,    dt3/2.0,        0.0,        0.0],
-            [    0.0,   dt4/4.0,        0.0,        0.0,    dt3/2.0,        0.0],
-            [    0.0,       0.0,    dt4/4.0,        0.0,        0.0,    dt3/2.0],
+    //     let q_block =  [
+    //         [dt4/4.0,       0.0,        0.0,    dt3/2.0,        0.0,        0.0],
+    //         [    0.0,   dt4/4.0,        0.0,        0.0,    dt3/2.0,        0.0],
+    //         [    0.0,       0.0,    dt4/4.0,        0.0,        0.0,    dt3/2.0],
             
-            [dt3/2.0,        0.0,        0.0,       dt2, 0.0, 0.0],
-            [    0.0,    dt3/2.0,        0.0,       0.0, dt2, 0.0],
-            [    0.0,        0.0,    dt3/2.0,       0.0, 0.0, dt2],
-        ];
-        let q_block_trans = 
-            SMatrix::<f32,6,6>::from_fn(|i,j| 
-                std_accel*std_accel*q_block[i][j]);
-        let q_block_rot   = 
-            SMatrix::<f32,6,6>::from_fn(|i,j| 
-                std_alpha*std_alpha*q_block[i][j]);
-        for i in 0..12 {
-            for j in 0..12 {
-                if i < 6 && j < 6 {
-                    q[(i,j)] = q_block_trans[(i,j)];
-                } else if i >= 6 && j >= 6 {
-                    q[(i,j)] = q_block_rot[(i,j)];
+    //         [dt3/2.0,        0.0,        0.0,       dt2, 0.0, 0.0],
+    //         [    0.0,    dt3/2.0,        0.0,       0.0, dt2, 0.0],
+    //         [    0.0,        0.0,    dt3/2.0,       0.0, 0.0, dt2],
+    //     ];
+    //     let q_block_trans = 
+    //         SMatrix::<f32,6,6>::from_fn(|i,j| 
+    //             std_accel*std_accel*q_block[i][j]);
+    //     let q_block_rot   = 
+    //         SMatrix::<f32,6,6>::from_fn(|i,j| 
+    //             std_alpha*std_alpha*q_block[i][j]);
+    //     for i in 0..12 {
+    //         for j in 0..12 {
+    //             if i < 6 && j < 6 {
+    //                 q[(i,j)] = q_block_trans[(i,j)];
+    //             } else if i >= 6 && j >= 6 {
+    //                 q[(i,j)] = q_block_rot[(i,j)];
 
-                }
-            }
-        }
-        self.process_noise_covariance = SMatrix::from_fn(|i,j| q[(i,j)]);
-    }
+    //             }
+    //         }
+    //     }
+    //     self.process_noise_covariance = SMatrix::from_fn(|i,j| q[(i,j)]);
+    // }
 
-    /// Kalman Filter predict step:
-    /// x_k = A*X_k-1 + B*u_k
-    /// P_k = A*P_k-1*A_T + Q
-    pub fn kalman_predict(&mut self) {
-        self.state = self.state_transition_matrix * self.state;
-        // Assuming no proccess noise for now
-        self.covariance = self.state_transition_matrix * self.covariance * self.state_transition_matrix.transpose()
-                            + self.process_noise_covariance;
-    }
+    // /// Kalman Filter predict step:
+    // /// x_k = A*X_k-1 + B*u_k
+    // /// P_k = A*P_k-1*A_T + Q
+    // pub fn kalman_predict(&mut self) {
+    //     self.state = self.state_transition_matrix * self.state;
+    //     // Assuming no proccess noise for now
+    //     self.covariance = self.state_transition_matrix * self.covariance * self.state_transition_matrix.transpose()
+    //                         + self.process_noise_covariance;
+    // }
 
     /// Complimentary filter from gyroscope and accelerometer measurements
     /// 
