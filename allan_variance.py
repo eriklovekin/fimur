@@ -28,10 +28,10 @@ def compute_allan_variance(dt,x):
 
 if __name__ == "__main__":
     path = "./logs/"
-    d = "20260712-225526/"
-    filename = "accel1.csv"
+    timestamp = "20260712-225526/"
+    filename = "gyro2.csv"
 
-    full = path+d+filename
+    full = path+timestamp+filename
     print(f"loading {full}")
     df = pd.read_csv(f"{full}")
     print(f"loaded")
@@ -55,8 +55,9 @@ if __name__ == "__main__":
     print("plotting...")
     win = pg.GraphicsLayoutWidget(show=True, title="Allan Variance")
     win.resize(1200, 800)
-    p1 = win.addPlot(title="Accelerometer")
-    p1.setLabel('left', 'Allan Deviation &sigma;(&tau;)', units='m/s^2')
+    p1 = win.addPlot()
+    p1.setTitle(f"{timestamp}{filename}")
+    p1.setLabel('left', 'Allan Deviation &sigma;(&tau;)', units='deg/s')
     p1.setLabel('bottom', 'window size &tau;', units='s')
     p1.addLegend(offset = (-10,10))
     p1.setLogMode(x=True, y=True)
