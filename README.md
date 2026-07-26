@@ -35,6 +35,8 @@ Ensure the following libraries are installed using `pip install <library>`
 - numpy
 - pyqtgraph
 - pyside6
+- allantools
+
 ### PyQt
 - `sudo apt update`
 - `sudo apt install libxcb-cursor0`
