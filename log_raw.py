@@ -16,7 +16,7 @@ def find_esp32_port():
 
 BAUD = 115200
 WINDOW_SIZE = 200
-N_IMUS = 12
+N_IMUS = 1
 FLUSH_EVERY = 50
 
 def update(ser,writers,files):

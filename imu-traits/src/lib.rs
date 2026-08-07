@@ -1,6 +1,8 @@
 #![no_std]
 use heapless::String;
 
+use crate::constants::{DEG_TO_RAD, EARTH_GRAVITY};
+
 pub mod constants;
 
 pub trait Imu {
@@ -224,10 +226,29 @@ impl Measurement {
     }
 
     pub fn get_accel_s_g(&self) -> [f32;3] {
-        [self.accelerometer_s_g.0, self.accelerometer_s_g.1, self.accelerometer_s_g.2]
+        [
+            self.accelerometer_s_g.0, 
+            self.accelerometer_s_g.1, 
+            self.accelerometer_s_g.2
+        ]
     }
+    pub fn get_accel_s_mps2(&self) -> [f32;3] {
+        [
+            self.accelerometer_s_g.0*EARTH_GRAVITY, 
+            self.accelerometer_s_g.1*EARTH_GRAVITY, 
+            self.accelerometer_s_g.2*EARTH_GRAVITY
+        ]
+    }
+
     pub fn get_gyro_s_dps(&self) -> [f32;3] {
         [self.gyroscope_s_dps.0, self.gyroscope_s_dps.1, self.gyroscope_s_dps.2]
+    }
+    pub fn get_gyro_s_rps(&self) -> [f32;3] {
+        [
+            self.gyroscope_s_dps.0*DEG_TO_RAD, 
+            self.gyroscope_s_dps.1*DEG_TO_RAD, 
+            self.gyroscope_s_dps.2*DEG_TO_RAD
+        ]
     }
 
     /// Get last read data as a comma-separated string

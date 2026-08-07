@@ -50,7 +50,8 @@ fn main() -> ! {
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let _peripherals = esp_hal::init(config);
-    let rmt = Rmt::new(_peripherals.RMT, Rate::from_mhz(80)).unwrap();
+    let rmt = Rmt::new(
+        _peripherals.RMT, Rate::from_mhz(80)).unwrap();
 
     let i2c_config = Config::default();
     let i2c = I2c::new(_peripherals.I2C0, i2c_config)
@@ -62,7 +63,8 @@ fn main() -> ! {
 
     // let switch_address = SlaveAddr::Alternative(false,false,false);
     let switch_address = SlaveAddr::default();
-    let i2c_switch = Xca9548a::new(RefCellDevice::new(&i2c_bus), switch_address);
+    let i2c_switch = Xca9548a::new(
+        RefCellDevice::new(&i2c_bus), switch_address);
     let parts = i2c_switch.split();
     
     // RefCell needed so multiple devices can share the same channel of the multiplexer
@@ -73,56 +75,52 @@ fn main() -> ! {
     let ch4_bus = RefCell::new(parts.i2c4);
     let ch5_bus = RefCell::new(parts.i2c5);
     // let ch_bus = RefCell::new(parts.i2c7);
-    let imu1 = Icm20948::new(RefCellDevice::new(&ch0_bus),0x68);
-    let imu2 = Icm20948::new(RefCellDevice::new(&ch0_bus),0x69);
-    let imu3 = Icm20948::new(RefCellDevice::new(&ch1_bus),0x68);
-    let imu4 = Icm20948::new(RefCellDevice::new(&ch1_bus),0x69);
-    let imu5 = Icm20948::new(RefCellDevice::new(&ch2_bus),0x68);
-    let imu6 = Icm20948::new(RefCellDevice::new(&ch2_bus),0x69);
-    let imu7 = Icm20948::new(RefCellDevice::new(&ch3_bus),0x68);
-    let imu8 = Icm20948::new(RefCellDevice::new(&ch3_bus),0x69);
-    let imu9 = Icm20948::new(RefCellDevice::new(&ch4_bus),0x68);
-    let imu10 = Icm20948::new(RefCellDevice::new(&ch4_bus),0x69);
-    let imu11 = Icm20948::new(RefCellDevice::new(&ch5_bus),0x68);
-    let imu12 = Icm20948::new(RefCellDevice::new(&ch5_bus),0x69);
+    let imu1 = Icm20948::new(
+        RefCellDevice::new(&ch0_bus),0x68);
+    let imu2 = Icm20948::new(
+        RefCellDevice::new(&ch0_bus),0x69);
+    let imu3 = Icm20948::new(
+        RefCellDevice::new(&ch1_bus),0x68);
+    let imu4 = Icm20948::new(
+        RefCellDevice::new(&ch1_bus),0x69);
+    let imu5 = Icm20948::new(
+        RefCellDevice::new(&ch2_bus),0x68);
+    let imu6 = Icm20948::new(
+        RefCellDevice::new(&ch2_bus),0x69);
+    let imu7 = Icm20948::new(
+        RefCellDevice::new(&ch3_bus),0x68);
+    let imu8 = Icm20948::new(
+        RefCellDevice::new(&ch3_bus),0x69);
+    let imu9 = Icm20948::new(
+        RefCellDevice::new(&ch4_bus),0x68);
+    let imu10 = Icm20948::new(
+        RefCellDevice::new(&ch4_bus),0x69);
+    let imu11 = Icm20948::new(
+        RefCellDevice::new(&ch5_bus),0x68);
+    let imu12 = Icm20948::new(
+        RefCellDevice::new(&ch5_bus),0x69);
 
-    let mut f = Filter::new(loop_duration_us,[imu1, imu2, imu3, imu4, imu5, imu6, imu7, imu8, imu9, imu10, imu11, imu12]);
+    let mut f = Filter::new([
+        imu1, imu2, imu3, imu4, imu5, imu6, 
+        imu7, imu8, imu9, imu10, imu11, imu12
+        ]);
     f.init();
     
-    // // IMU1 is on top of stack
-    // f.sensor(0).set_accelerometer_scale(3)
-    //     .expect("failed to set accelerometer range");
-    // f.sensor(0).set_gyroscope_scale(3)
-    //     .expect("failed to set gyroscope range");
-    // f.sensor(0).set_origin_f([0.0, 0.0, 0.0]);
-    // f.sensor(0).set_rotation_dcm_s2f([  [1.0, 0.0, 0.0],
-    //                                     [0.0, 1.0, 0.0],
-    //                                     [0.0, 0.0, 1.0]]);
-
-    // f.sensor(1).set_accelerometer_scale(3)
-    //     .expect("failed to set accelerometer range");
-    // f.sensor(1).set_gyroscope_scale(3)
-    //     .expect("failed to set gyroscope range");
-    // f.sensor(1).set_origin_f([0.0, 0.0, 0.01]);
-    // f.sensor(1).set_rotation_dcm_s2f([  [1.0, 0.0, 0.0],
-    //                                     [0.0, 1.0, 0.0],
-    //                                     [0.0, 0.0, 1.0]]);
-
     for s in 0..f.get_n_sensors() {
         f.sensor(s).set_accelerometer_scale(3)
             .expect("failed to set accelerometer range");
         f.sensor(s).set_gyroscope_scale(3)
             .expect("failed to set gyroscope range");
         f.sensor(s).set_origin_f([0.0, 0.0, 0.01]);
-        f.sensor(s).set_rotation_dcm_s2f([  [1.0, 0.0, 0.0],
-                                        [0.0, 1.0, 0.0],
-                                        [0.0, 0.0, 1.0]]);
+        f.sensor(s).set_rotation_dcm_s2f([  
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0]]);
     }
-    // f.init_default_kinematics();   
-    // f.init_block_process_noise_covariance();                     
-
+    
     let mut led_buf = smart_led_buffer!(1);
-    let mut led = SmartLedsAdapter::new(rmt.channel0, _peripherals.GPIO8, &mut led_buf);
+    let mut led = SmartLedsAdapter::new(
+        rmt.channel0, _peripherals.GPIO8, &mut led_buf);
     const LEVEL: u8 = 10;
     let mut color = RGB8::default();
     color.r = LEVEL;
@@ -139,12 +137,11 @@ fn main() -> ! {
         f.read_all();
 
         // Estimate virtual measurements
-        // f.most_naive_filter_possible();
+        f.colocated_coaligned_avg();
 
-        // Estimate Position
         output.clear();
         write!(output,"{},",timestamp).ok();
-        write!(output,"{}", f.report_raw()).ok();
+        write!(output,"{}", f.report_virtual_meas()).ok();
         println!("{}",output);
         let tmp = color.r;
         color.r = color.b;
