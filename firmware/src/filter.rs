@@ -51,9 +51,9 @@ pub struct Filter <I2C>{
     // dt_us: u32,
     sensors: [Icm20948<I2C>; N_IMUS],
     /// All accelerometer measurements transformed into F frame
-    last_accel_f_g:     [[f32;3];N_IMUS],
+    last_accel_f_mps2:     [[f32;3];N_IMUS],
     /// All gyroscope measurements transformed into F frame
-    last_gyro_f_dps:    [[f32;3];N_IMUS],
+    last_gyro_f_rps:    [[f32;3];N_IMUS],
     /// Current estimate of accelerations in F frame [g]
     accel_est_f_mps2:   Vector3<f64>, 
     // /// Current estimate of velocity in L frame [m/s]
@@ -83,8 +83,8 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         Self {
             // dt_us: dt_us,
             sensors: s,
-            last_accel_f_g:   [[0.0;3];N_IMUS],
-            last_gyro_f_dps:  [[0.0;3];N_IMUS],
+            last_accel_f_mps2:   [[0.0;3];N_IMUS],
+            last_gyro_f_rps:  [[0.0;3];N_IMUS],
             accel_est_f_mps2:   Vector3::new(0.0,0.0,0.0),
             // v_est_l_mps:    [0.0;3],
             // r_est_l_m:      [0.0;3],
@@ -332,7 +332,7 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         for (i,s) in self.sensors.iter().enumerate() {
             ret[i] = self.transform_imu_gyro_s2f(s);
         }
-        self.last_gyro_f_dps = ret;
+        self.last_gyro_f_rps = ret;
         ret
     }
 
@@ -342,7 +342,7 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         for (i,s) in self.sensors.iter().enumerate() {
             ret[i] = self.transform_imu_accel_s2f(s);
         }
-        self.last_accel_f_g = ret;
+        self.last_accel_f_mps2 = ret;
         ret
     }
     
