@@ -45,7 +45,7 @@ esp_bootloader_esp_idf::esp_app_desc!();
 fn main() -> ! {
     info!("startup");
 
-    let mut timestamp: u32 = 0;
+    let mut timestamp: u64 = 0;
     // let loop_duration_us: u32 = 200; 
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
@@ -196,6 +196,6 @@ fn main() -> ! {
 
         let loop_end = Instant::now();
         let elapsed: Duration = loop_end - loop_start;
-        timestamp += elapsed.as_micros() as u32;
+        timestamp += elapsed.as_micros();
     }
 }

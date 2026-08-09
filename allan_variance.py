@@ -33,13 +33,14 @@ def compute_allan_variance(dt,x):
 
 if __name__ == "__main__":
     path = "./logs/"
-    timestamp = "20260725-233150/"
+    timestamp = "20260808-235938/"
+    # timestamp = "20260725-233150/"
     # timestamp = "20260807-052335/"
     sensor = ["accel", "gyro"]
     units =  ["m/s2", "rad/s"]
     axis = ["x","y","z"]
     color = ["r","g","b"]
-    N_IMUS = 12
+    N_IMUS = 13
 
     index = pd.MultiIndex.from_product(
     [range(1, N_IMUS+1), ["accel", "gyro"], ["x", "y", "z"]],
@@ -49,6 +50,8 @@ if __name__ == "__main__":
 
     # conversion from min allan deviation to bias instability
     C = 1/np.sqrt(2*np.log(2)/np.pi) # per IEEE-STD-952-1997 Annex C 
+
+    dt_diag = []
 
     app = QtWidgets.QApplication(sys.argv)
     windows = []
@@ -69,7 +72,19 @@ if __name__ == "__main__":
                 nan_rows = df[df.isna().any(axis=1)]
                 print(nan_rows.head(20))
                 print(f"first NaN at row: {nan_rows.index.min() if len(nan_rows) else 'none'}")
-            dt = (df["t_us"][2] - df["t_us"][1])/1e6
+            # dt = (df["t_us"][2] - df["t_us"][1])/1e6
+            dt = (df["t_us"][-1] - df["t_us"][1])/(1e6*(df["t_us"].size()-1))
+            dt_diag = np.diff(df["t_us"])
+            mean_dt = np.mean(dt_diag)
+            std_dt = np.std(dt_diag)
+            w = pg.GraphicsLayoutWidget(show=True, title=f"Loop Time histogram - {timestamp}{sensor[j]}{i+1}")
+            w.resize(1200, 800)
+            p1 = w.addPlot()
+            p1.setTitle(f"Loop Time histogram - {timestamp}{sensor[j]}{i+1}, mean: {mean_dt}, std: {std_dt}")
+            # p1.setLabel('left', '', units="s")
+            p1.setLabel('bottom', 'Loop time', units="s")
+            y, x = np.histogram(dt_diag, bins=30)
+            p1.PlotCurveItem(x,y,stepMode=True, fillLevel=0, brush=(0, 150, 255, 150), pen='k')
 
             win = pg.GraphicsLayoutWidget(show=True, title=f"Allan Variance - {timestamp}{sensor[j]}{i+1}")
             win.resize(1200, 800)
