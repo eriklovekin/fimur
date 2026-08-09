@@ -260,9 +260,9 @@ impl Measurement {
     /// Units:
     /// Accel: m/s^2
     /// Gyro: rad/s
-    pub fn report(&self) -> String<128> {
+    pub fn report(&self) -> String<256> {
         use core::fmt::Write;
-        let mut s: String<128> = String::new();
+        let mut s: String<256> = String::new();
         write!(s, "{},{},{},{},{},{},", 
             self.accelerometer_s_mps2.0, self.accelerometer_s_mps2.1, self.accelerometer_s_mps2.2,
             self.gyroscope_s_rps.0, self.gyroscope_s_rps.1, self.gyroscope_s_rps.2).ok();

@@ -37,7 +37,7 @@ const N_IMUS: usize = 12; // number of IMUs being used
 /// two sig figs and a comma
 const F32_SIZE: usize = 12;
 /// six floats and six commas for each IMU
-const REPORT_RAW_SIZE: usize = 6*F32_SIZE*N_IMUS; 
+const REPORT_RAW_SIZE: usize = 7*F32_SIZE*N_IMUS; 
 /// three floats for each set of 3DoF (rotational, translational)
 const REPORT_EST_3DOF_SIZE: usize = 40;
 // /// size of report of current estimated pose
@@ -410,7 +410,7 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         for (i,si) in self.sensors.iter_mut().enumerate() {
             si.read_accelerometer_mps2()
                 .unwrap_or_else(|_| panic!("failed to read accelerometer of sensor {}", i));
-            si.read_gyroscope_dps()
+            si.read_gyroscope_rps()
                 .unwrap_or_else(|_| panic!("failed to read gyroscope of sensor {}", i));
         }
     }

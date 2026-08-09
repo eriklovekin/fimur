@@ -16,7 +16,7 @@ def find_esp32_port():
 
 BAUD = 115200
 WINDOW_SIZE = 200
-N_IMUS = 1
+N_IMUS = 13
 FLUSH_EVERY = 50
 
 def update(ser,writers,files):
@@ -25,6 +25,7 @@ def update(ser,writers,files):
         if line and line[0].isdigit():
             values = line.split(',')
             if len(values) != 2 + 6*N_IMUS:
+                print("skipped packet")
                 pass
             for i in range(N_IMUS):
                 t = values[0]

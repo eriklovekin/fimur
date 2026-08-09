@@ -155,7 +155,7 @@ where
     }
 
     fn attitude_from_direct_integration(&mut self, attitude: (f32,f32,f32), dt_us: u32) -> Result<(f32,f32,f32), Self::Error> {
-        let (d_phi_dt, d_theta_dt, d_psi_dt) = self.read_gyroscope_dps()?;
+        let (d_phi_dt, d_theta_dt, d_psi_dt) = self.read_gyroscope_rps()?;
         // Ok((attitude.0 + (d_phi_dt-9.5)   * (dt_us as f32)/1e6,
         //     attitude.1 + (d_theta_dt-4.5) * (dt_us as f32)/1e6,
         //     attitude.2 + (d_psi_dt-0.5)   * (dt_us as f32)/1e6))

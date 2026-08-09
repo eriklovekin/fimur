@@ -46,7 +46,7 @@ fn main() -> ! {
     info!("startup");
 
     let mut timestamp: u32 = 0;
-    let loop_duration_us: u32 = 200; 
+    // let loop_duration_us: u32 = 200; 
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let _peripherals = esp_hal::init(config);
@@ -174,18 +174,19 @@ fn main() -> ! {
     info!("reading imu data");
     loop {
         led.write([color].into_iter()).unwrap();
-        let delay_start = Instant::now();
-        while delay_start.elapsed() < Duration::from_micros(loop_duration_us as u64) {}
+        let loop_start = Instant::now();
+        // while delay_start.elapsed() < Duration::from_micros(loop_duration_us as u64) {}
 
         // Read all sensors
         f.read_all();
 
         // Estimate virtual measurements
-        // f.colocated_coaligned_avg();
-        f.f_frame_avg();
+        f.colocated_coaligned_avg();
+        // f.f_frame_avg();
 
         output.clear();
         write!(output,"{},",timestamp).ok();
+        write!(output,"{}", f.report_raw()).ok();
         write!(output,"{}", f.report_virtual_meas()).ok();
         println!("{}",output);
         let tmp = color.r;
@@ -193,6 +194,8 @@ fn main() -> ! {
         color.b = color.g;
         color.g = tmp;
 
-        timestamp += loop_duration_us;
+        let loop_end = Instant::now();
+        let elapsed: Duration = loop_end - loop_start;
+        timestamp += elapsed.as_micros() as u32;
     }
 }
