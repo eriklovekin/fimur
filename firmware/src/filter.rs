@@ -1,7 +1,5 @@
 use crate::math::{
-    add_arrays,
     mat_vec_mult,
-    cross3,
 };
 
 // use nalgebra::{
@@ -19,7 +17,7 @@ use defmt::{
 };
 
 use imu_traits::{
-    Imu, constants::EARTH_GRAVITY
+    Imu,
 };
 
 use icm20948:: {
@@ -32,6 +30,10 @@ use core::fmt::Write;
 // use imu_traits::constants::{
 //     PI
 // };
+
+use nalgebra::{
+    Matrix3, Vector3,
+};
 
 const N_IMUS: usize = 12; // number of IMUs being used
 /// two sig figs and a comma
@@ -53,13 +55,13 @@ pub struct Filter <I2C>{
     /// All gyroscope measurements transformed into F frame
     last_gyro_f_dps:    [[f32;3];N_IMUS],
     /// Current estimate of accelerations in F frame [g]
-    accel_est_f_g:      [f32;3], 
+    accel_est_f_mps2:   Vector3<f64>, 
     // /// Current estimate of velocity in L frame [m/s]
     // v_est_l_mps:        [f32;3],
     // /// Current estimate of position in L frame [m]
     // r_est_l_m:          [f32;3],
     /// Current estimate of angular rates in F frame [deg/s]
-    w_est_f_dps:        [f32;3],
+    w_est_f_rps:        Vector3<f64>,
     // /// Current estimate of attitude [deg]
     // att_est_f_deg:      [f32;3],
     // /// State
@@ -83,10 +85,10 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
             sensors: s,
             last_accel_f_g:   [[0.0;3];N_IMUS],
             last_gyro_f_dps:  [[0.0;3];N_IMUS],
-            accel_est_f_g:  [0.0;3],
+            accel_est_f_mps2:   Vector3::new(0.0,0.0,0.0),
             // v_est_l_mps:    [0.0;3],
             // r_est_l_m:      [0.0;3],
-            w_est_f_dps:    [0.0;3],
+            w_est_f_rps:        Vector3::new(0.0,0.0,0.0),
             // att_est_f_deg:  [0.0;3],
             // state:          SMatrix::zeros(),
             // covariance:     SMatrix::identity(), // placeholder until more accurate P0 is implemented
@@ -261,8 +263,14 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
             }
         }
         let avg_state = self.average_filter(state);
-        self.accel_est_f_g = [avg_state[0],avg_state[1],avg_state[2]];
-        self.w_est_f_dps = [avg_state[3],avg_state[4],avg_state[5]];
+        self.accel_est_f_mps2 = Vector3::new(
+            avg_state[0] as f64,
+            avg_state[1] as f64,
+            avg_state[2] as f64);
+        self.w_est_f_rps = Vector3::new(
+            avg_state[3] as f64,
+            avg_state[4] as f64,
+            avg_state[5] as f64);
     }
 
     /// Assume that:
@@ -281,8 +289,14 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
             }
         }
         let avg_state = self.average_filter(state);
-        self.accel_est_f_g = [avg_state[0],avg_state[1],avg_state[2]];
-        self.w_est_f_dps = [avg_state[3],avg_state[4],avg_state[5]];
+        self.accel_est_f_mps2  = Vector3::new(
+            avg_state[0] as f64,
+            avg_state[1] as f64,
+            avg_state[2] as f64);
+        self.w_est_f_rps    = Vector3::new(
+            avg_state[3] as f64,
+            avg_state[4] as f64,
+            avg_state[5] as f64);
     }
 
     /// Average of M N-axis sensors
@@ -349,8 +363,8 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
             imu.rotation_dcm_s2f(),
             imu.origin_f(),
             imu.meas().get_accel_s_mps2(),
-            self.w_est_f_dps,
-            self.accel_est_f_g.map(|x| EARTH_GRAVITY*x)
+            self.w_est_f_rps,
+            self.accel_est_f_mps2
         )
     }
 
@@ -362,27 +376,30 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
     /// # Parameters
     /// - s2f: DCM rotating from S to F frame
     /// - origin_f: origin of S frame in F frame
-    /// - accel_s: accelerometer measurements in S frame (xS, yS, zS) [g]
-    /// - w_f_dps: rotational rate of body in F frame [deg/s]
-    /// - a_f_mps2: rotational acceleration of body in F frame [g]
+    /// - accel_s: accelerometer measurements in S frame (xS, yS, zS) [m/s2]
+    /// - w_f_rps: rotational rate of body in F frame [rad/s]
+    /// - a_f_rps2: rotational acceleration of body in F frame [rad/s2]
     pub fn transform_accel_s2f(
         &self, 
         s2f: [[f32;3];3], 
         origin_f: [f32;3], 
         accel_s: [f32;3], 
-        w_f_dps: [f32;3], 
-        a_f_mps2: [f32;3]
+        w_f_rps: Vector3<f64>, 
+        a_f_rps2: Vector3<f64>
     ) -> [f32;3] {
-        add_arrays(
-            add_arrays(
-                mat_vec_mult(s2f,accel_s), 
-                cross3(
-                    w_f_dps,
-                    cross3(
-                        w_f_dps,
-                        origin_f))
-                        .map(|x| -x)), 
-            cross3(a_f_mps2,origin_f).map(|x| -x))
+        let s2f_nalg:Matrix3<f64> = Matrix3::new(
+            s2f[0][0] as f64,s2f[0][1] as f64,s2f[0][2] as f64,
+            s2f[1][0] as f64,s2f[1][1] as f64,s2f[1][2] as f64,
+            s2f[2][0] as f64,s2f[2][1] as f64,s2f[2][2] as f64);
+        let a_s:Vector3<f64> = Vector3::new(
+            accel_s[0] as f64,accel_s[1] as f64,accel_s[2] as f64);
+        let o_f:Vector3<f64> = Vector3::new(
+            origin_f[0] as f64,origin_f[1] as f64,origin_f[2] as f64);
+        let res: Vector3<f64>=
+            s2f_nalg*a_s - 
+            w_f_rps.cross(&(w_f_rps.cross(&o_f))) -
+            a_f_rps2.cross(&o_f);
+        [res[0] as f32,res[1] as f32, res[2] as f32]
     }
 
     /// From a 3-axis gyroscope measurement in an S frame, calculate the measurement in the F frame
@@ -450,9 +467,9 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
     pub fn report_est_accel(&self) -> String<REPORT_EST_3DOF_SIZE> {
         let mut s: String<REPORT_EST_3DOF_SIZE> = String::new();
         write!(s,"{},{},{},",
-            self.accel_est_f_g[0],
-            self.accel_est_f_g[1],
-            self.accel_est_f_g[2]
+            self.accel_est_f_mps2[0],
+            self.accel_est_f_mps2[1],
+            self.accel_est_f_mps2[2]
         ).ok();
         s
     }
@@ -483,9 +500,9 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
     pub fn report_est_w(&self) -> String<REPORT_EST_3DOF_SIZE> {
         let mut s: String<REPORT_EST_3DOF_SIZE> = String::new();
         write!(s,"{},{},{},",
-            self.w_est_f_dps[0],
-            self.w_est_f_dps[1],
-            self.w_est_f_dps[2]
+            self.w_est_f_rps[0],
+            self.w_est_f_rps[1],
+            self.w_est_f_rps[2]
         ).ok();
         s
     }
