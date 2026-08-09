@@ -96,12 +96,16 @@ where
 
     fn read_accelerometer_mps2(&mut self) -> Result<(f32,f32,f32), Self::Error> {
         let gs = self.read_accelerometer_g()?;
-        Ok((gs.0*constants::G_TO_MPS2, gs.1*constants::G_TO_MPS2, gs.2*constants::G_TO_MPS2))    
+        let ret = (
+            gs.0*constants::G_TO_MPS2, 
+            gs.1*constants::G_TO_MPS2, 
+            gs.2*constants::G_TO_MPS2);
+        self.meas.update_accel_s_mps2(ret);
+        Ok(ret)    
     }
 
     fn read_accelerometer_g(&mut self) -> Result<(f32,f32,f32), Self::Error> {
         let gs = self.read_accelerometer_units(constants::ACCEL_FS0_SCALE)?;
-        self.meas.update_accel_s_g(gs);
         Ok(gs)
     }
 
@@ -117,13 +121,17 @@ where
 
     fn read_gyroscope_dps(&mut self) -> Result<(f32,f32,f32), Self::Error> {
         let dps = self.read_gyroscope_units(constants::GYRO_FS0_SCALE)?;
-        self.meas.update_gyroscope_s_dps(dps);
         Ok(dps)
     }
 
     fn read_gyroscope_rps(&mut self) -> Result<(f32,f32,f32), Self::Error> {
         let dps = self.read_gyroscope_dps()?;
-        Ok((dps.0*constants::DEG_TO_RAD, dps.1*constants::G_TO_MPS2, dps.2*constants::G_TO_MPS2))
+        let ret = (
+            dps.0*constants::DEG_TO_RAD, 
+            dps.1*constants::DEG_TO_RAD, 
+            dps.2*constants::DEG_TO_RAD);
+        self.meas.update_gyroscope_s_rps(ret);
+        Ok(ret)
     }
 
     fn read_gyroscope_raw(&mut self) -> Result<(f32, f32, f32), Self::Error> {

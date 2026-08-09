@@ -1,7 +1,7 @@
 #![no_std]
 use heapless::String;
 
-use crate::constants::{DEG_TO_RAD, EARTH_GRAVITY};
+use crate::constants::{EARTH_GRAVITY, RAD_TO_DEG};
 
 pub mod constants;
 
@@ -206,62 +206,66 @@ pub trait ImuWithRegisterBanks: Imu {
 
 #[derive(Copy, Clone)]
 pub struct Measurement {
-    accelerometer_s_g: (f32,f32,f32),
-    gyroscope_s_dps: (f32,f32,f32),
+    accelerometer_s_mps2: (f32,f32,f32),
+    gyroscope_s_rps: (f32,f32,f32),
 }
 
 impl Measurement {
     pub fn init() -> Self {
         Self {
-            accelerometer_s_g: (0.0, 0.0, 0.0),
-            gyroscope_s_dps: (0.0, 0.0, 0.0),
+            accelerometer_s_mps2: (0.0, 0.0, 0.0),
+            gyroscope_s_rps: (0.0, 0.0, 0.0),
         }
     }
 
-    pub fn update_accel_s_g(&mut self, accel: (f32,f32,f32)) {
-        self.accelerometer_s_g = accel;
+    pub fn update_accel_s_mps2(&mut self, accel: (f32,f32,f32)) {
+        self.accelerometer_s_mps2 = accel;
     }
-    pub fn update_gyroscope_s_dps(&mut self, gyro: (f32,f32,f32)) {
-        self.gyroscope_s_dps = gyro;
+    pub fn update_gyroscope_s_rps(&mut self, gyro: (f32,f32,f32)) {
+        self.gyroscope_s_rps = gyro;
     }
 
-    pub fn get_accel_s_g(&self) -> [f32;3] {
-        [
-            self.accelerometer_s_g.0, 
-            self.accelerometer_s_g.1, 
-            self.accelerometer_s_g.2
-        ]
-    }
     pub fn get_accel_s_mps2(&self) -> [f32;3] {
         [
-            self.accelerometer_s_g.0*EARTH_GRAVITY, 
-            self.accelerometer_s_g.1*EARTH_GRAVITY, 
-            self.accelerometer_s_g.2*EARTH_GRAVITY
+            self.accelerometer_s_mps2.0, 
+            self.accelerometer_s_mps2.1, 
+            self.accelerometer_s_mps2.2
         ]
+    }
+    pub fn get_accel_s_g(&self) -> [f32;3] {
+        [
+            self.accelerometer_s_mps2.0/EARTH_GRAVITY, 
+            self.accelerometer_s_mps2.1/EARTH_GRAVITY, 
+            self.accelerometer_s_mps2.2/EARTH_GRAVITY
+        ]
+    }
+
+    pub fn get_gyro_s_rps(&self) -> [f32;3] {
+        [
+            self.gyroscope_s_rps.0, 
+            self.gyroscope_s_rps.1, 
+            self.gyroscope_s_rps.2]
     }
 
     pub fn get_gyro_s_dps(&self) -> [f32;3] {
-        [self.gyroscope_s_dps.0, self.gyroscope_s_dps.1, self.gyroscope_s_dps.2]
-    }
-    pub fn get_gyro_s_rps(&self) -> [f32;3] {
         [
-            self.gyroscope_s_dps.0*DEG_TO_RAD, 
-            self.gyroscope_s_dps.1*DEG_TO_RAD, 
-            self.gyroscope_s_dps.2*DEG_TO_RAD
+            self.gyroscope_s_rps.0*RAD_TO_DEG, 
+            self.gyroscope_s_rps.1*RAD_TO_DEG, 
+            self.gyroscope_s_rps.2*RAD_TO_DEG
         ]
     }
 
     /// Get last read data as a comma-separated string
     /// Ignores errors
     /// Units:
-    /// Accel: g
-    /// Gyro: deg/s
+    /// Accel: m/s^2
+    /// Gyro: rad/s
     pub fn report(&self) -> String<128> {
         use core::fmt::Write;
         let mut s: String<128> = String::new();
         write!(s, "{},{},{},{},{},{},", 
-            self.accelerometer_s_g.0, self.accelerometer_s_g.1, self.accelerometer_s_g.2,
-            self.gyroscope_s_dps.0, self.gyroscope_s_dps.1, self.gyroscope_s_dps.2).ok();
+            self.accelerometer_s_mps2.0, self.accelerometer_s_mps2.1, self.accelerometer_s_mps2.2,
+            self.gyroscope_s_rps.0, self.gyroscope_s_rps.1, self.gyroscope_s_rps.2).ok();
         s
     }
 }
