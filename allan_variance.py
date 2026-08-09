@@ -34,9 +34,21 @@ def compute_allan_variance(dt,x):
 if __name__ == "__main__":
     path = "./logs/"
     timestamp = "20260725-233150/"
+    # timestamp = "20260807-052335/"
     sensor = ["accel", "gyro"]
-    units =  ["g", "deg/s"]
+    units =  ["m/s2", "rad/s"]
+    axis = ["x","y","z"]
+    color = ["r","g","b"]
     N_IMUS = 12
+
+    index = pd.MultiIndex.from_product(
+    [range(1, N_IMUS+1), ["accel", "gyro"], ["x", "y", "z"]],
+    names=["imu", "sensor", "axis"]
+    )
+    superDf = pd.DataFrame(index=index, columns=["tau", "B"], dtype=float)
+
+    # conversion from min allan deviation to bias instability
+    C = 1/np.sqrt(2*np.log(2)/np.pi) # per IEEE-STD-952-1997 Annex C 
 
     app = QtWidgets.QApplication(sys.argv)
     windows = []
@@ -46,39 +58,18 @@ if __name__ == "__main__":
             full = path+timestamp+sensor[j]+str(i+1)+".csv"
             print(f"loading {full}")
             df = pd.read_csv(f"{full}")
+
+            z_numeric = pd.to_numeric(df["z"], errors="coerce")
+            bad_mask = z_numeric.isna() & df["z"].notna()  # failed to parse, but wasn't already NaN/empty
+            # print(df.loc[bad_mask, "z"])
+            
             nan_counts = df.isna().sum()
             if nan_counts.any():
                 print(df.isna().sum())  # NaN count per column
                 nan_rows = df[df.isna().any(axis=1)]
                 print(nan_rows.head(20))
                 print(f"first NaN at row: {nan_rows.index.min() if len(nan_rows) else 'none'}")
-            x_raw = df["x"].to_numpy()
-            y_raw = df["y"].to_numpy()
-            z_raw = df["z"].to_numpy()
             dt = (df["t_us"][2] - df["t_us"][1])/1e6
-
-            tau_x, adev_x, adev_err_x, n = allantools.oadev(
-                x_raw, rate=1/dt, data_type="freq", taus="octave"
-            )
-            tau_y, adev_y, adev_err_y, n = allantools.oadev(
-                y_raw, rate=1/dt, data_type="freq", taus="octave"
-            )
-            tau_z, adev_z, adev_err_z, n = allantools.oadev(
-                z_raw, rate=1/dt, data_type="freq", taus="octave"
-            )
-
-            # x = np.cumsum(x_raw) * dt
-            # y = np.cumsum(y_raw) * dt
-            # z = np.cumsum(z_raw) * dt
-            # print("x-axis...")
-            # tau_x, avar_x = compute_allan_variance(dt,x)
-            # print("y-axis...")
-            # tau_y, avar_y = compute_allan_variance(dt,y)
-            # print("z-axis...")
-            # tau_z, avar_z = compute_allan_variance(dt,z)
-            # adev_x = np.sqrt(avar_x)
-            # adev_y = np.sqrt(avar_y)
-            # adev_z = np.sqrt(avar_z)
 
             win = pg.GraphicsLayoutWidget(show=True, title=f"Allan Variance - {timestamp}{sensor[j]}{i+1}")
             win.resize(1200, 800)
@@ -87,12 +78,45 @@ if __name__ == "__main__":
             p.setTitle(f"{timestamp}{sensor[j]}{i+1}")
             p.setLabel('left', 'Allan Deviation &sigma;(&tau;)', units=f"{units[j]}")
             p.setLabel('bottom', 'window size &tau;', units='s')
+            ax = p.getAxis('left')
+            ax.enableAutoSIPrefix(False)
             p.addLegend(offset = (-10,10))
             p.setLogMode(x=True, y=True)
             p.showGrid(x=True, y=True)
-            p.plot(tau_x,adev_x,pen='r', name='X')
-            p.plot(tau_y,adev_y,pen='g', name='Y')
-            p.plot(tau_z,adev_z,pen='b', name='Z')
+            
+            for a in range(len(axis)):
+                raw = df[axis[a]].to_numpy()
+
+                tau, adev, adev_err, n = allantools.oadev(
+                    raw, rate=1/dt, data_type="freq", taus="octave"
+                )
+
+                # print(f"{axis[a]}-axis...")
+                # craw = np.cumsum(raw) * dt
+                # tau, avar = compute_allan_variance(dt,craw)
+                # adev = np.sqrt(avar)
+                # print(f"{type(adev)}, {np.shape(adev)}")
+                min_adev = np.min(adev)
+                idx = np.argmin(np.abs(adev - min_adev))
+                t = tau[idx]
+                B = C*min_adev
+                superDf.loc[(i+1,f"{sensor[j]}",f"{axis[a]}"),"tau"] = t
+                superDf.loc[(i+1,f"{sensor[j]}",f"{axis[a]}"),"B"] = B
+
+                print(f"{axis[a]}:\nmin adev [{units[j]}]: {min_adev:.4f}, " \
+                      f"bias instability [{units[j]}]: {B:.4f}, " \
+                      f"time constant: {t:.4f}")
+
+                p.plot(tau,adev,pen=f"{color[a]}", name=f"{axis[a]}")
+                # err_item = pg.ErrorBarItem(
+                #     x=np.log10(tau_x),
+                #     y=np.log10(adev_x),
+                #     top=np.log10(adev_x + adev_err_x) - np.log10(adev_x),
+                #     bottom=np.log10(adev_x) - np.log10(adev_x - adev_err_x),
+                #     pen=pg.mkPen('r', width=1)
+                # )
+                # p.addItem(err_item)
+
             win.show()
             windows.append(win)
 
@@ -102,13 +126,29 @@ if __name__ == "__main__":
             expath = f"./assets/img/allan/{timestamp}"
             exname = f"{expath}allan_{sensor[j]}{i+1}.png"
 
-            os.makedirs(expath, exist_ok=True)
-            exporter = pg.exporters.ImageExporter(p)
-            exporter.parameters()['width'] = 1920
-            exporter.parameters()['background'] = 'w'
-            print(f"writing to {exname}")
-            exporter.export(f"{exname}")
+            # os.makedirs(expath, exist_ok=True)
+            # exporter = pg.exporters.ImageExporter(p)
+            # exporter.parameters()['width'] = 1920
+            # exporter.parameters()['background'] = 'w'
+            # print(f"writing to {exname}")
+            # exporter.export(f"{exname}")
+
+    print("Stack stats:")
+    for j in range(len(sensor)):
+        print(f"{sensor[j]}")
+        for a in range(len(axis)):
+            set = superDf.xs((sensor[j],axis[a]), level=("sensor","axis"))
+            meanB = set["B"].mean()
+            medB = set["B"].median()
+            stdB = set["B"].std()
+            meanTau = set["tau"].mean()
+            medTau = set["tau"].median()
+            stdTau = set["tau"].std()
             
+            print(f"{axis[a]}")
+            print(f"bias instability mean [{units[j]}]: {meanB:.4f}, median: {medB:.4f}, std: {stdB:.4f}")
+            print(f"correlation time mean [{units[j]}]: {meanTau:.4f}, median: {medTau:.4f}, std: {stdTau:.4f}")
+        print("\n")
 
     print("plotting...")
     # Let Ctrl+C interrupt the Qt event loop
