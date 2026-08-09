@@ -61,6 +61,18 @@ fn main() -> ! {
     // RefCell needed so multiple multiplexers or I2C devices can share the same bus
     let i2c_bus = RefCell::new(i2c);
 
+    let aligned: [[f32;3];3]= [
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0]
+    ];
+
+    let cots_aligned: [[f32;3];3]= [
+        [ 0.0, -1.0,  0.0],
+        [-1.0,  0.0,  0.0],
+        [ 0.0,  0.0, -1.0]
+    ];
+
     // let switch_address = SlaveAddr::Alternative(false,false,false);
     let switch_address = SlaveAddr::default();
     let i2c_switch = Xca9548a::new(
@@ -74,31 +86,63 @@ fn main() -> ! {
     let ch3_bus = RefCell::new(parts.i2c3);
     let ch4_bus = RefCell::new(parts.i2c4);
     let ch5_bus = RefCell::new(parts.i2c5);
-    // let ch_bus = RefCell::new(parts.i2c7);
-    let imu1 = Icm20948::new(
-        RefCellDevice::new(&ch0_bus),0x68);
-    let imu2 = Icm20948::new(
-        RefCellDevice::new(&ch0_bus),0x69);
-    let imu3 = Icm20948::new(
-        RefCellDevice::new(&ch1_bus),0x68);
-    let imu4 = Icm20948::new(
-        RefCellDevice::new(&ch1_bus),0x69);
-    let imu5 = Icm20948::new(
-        RefCellDevice::new(&ch2_bus),0x68);
-    let imu6 = Icm20948::new(
-        RefCellDevice::new(&ch2_bus),0x69);
-    let imu7 = Icm20948::new(
-        RefCellDevice::new(&ch3_bus),0x68);
-    let imu8 = Icm20948::new(
-        RefCellDevice::new(&ch3_bus),0x69);
-    let imu9 = Icm20948::new(
-        RefCellDevice::new(&ch4_bus),0x68);
-    let imu10 = Icm20948::new(
-        RefCellDevice::new(&ch4_bus),0x69);
-    let imu11 = Icm20948::new(
-        RefCellDevice::new(&ch5_bus),0x68);
-    let imu12 = Icm20948::new(
-        RefCellDevice::new(&ch5_bus),0x69);
+    // let ch6_bus = RefCell::new(parts.i2c6);
+    // let ch7_bus = RefCell::new(parts.i2c7);
+
+    let imu1 = Icm20948::new_with_mount(
+        RefCellDevice::new(&ch0_bus),0x68,
+        [-0.01,0.0,0.0],
+        aligned);
+    let imu2 = Icm20948::new_with_mount(
+        RefCellDevice::new(&ch0_bus),0x69,
+        [0.01,0.0,0.0],
+        aligned);
+
+    let imu3 = Icm20948::new_with_mount(
+        RefCellDevice::new(&ch1_bus),0x68,
+        [-0.01,0.0,-0.0115],
+        aligned);
+    let imu4 = Icm20948::new_with_mount(
+        RefCellDevice::new(&ch1_bus),0x69,
+        [0.01,0.0,-0.0115],
+        aligned);
+
+    let imu5 = Icm20948::new_with_mount(
+        RefCellDevice::new(&ch2_bus),0x68,
+        [-0.01,0.0,-0.023],
+        aligned);
+    let imu6 = Icm20948::new_with_mount(
+        RefCellDevice::new(&ch2_bus),0x69,
+        [0.01,0.0,-0.023],
+        aligned);
+
+    let imu7 = Icm20948::new_with_mount(
+        RefCellDevice::new(&ch3_bus),0x68,
+        [-0.01,0.0,-0.0345],
+        aligned);
+    let imu8 = Icm20948::new_with_mount(
+        RefCellDevice::new(&ch3_bus),0x69,
+        [0.01,0.0,-0.0345],
+        aligned);
+
+    let imu9 = Icm20948::new_with_mount(
+        RefCellDevice::new(&ch4_bus),0x68,
+        [-0.01,0.0,-0.0460],
+        aligned);
+    let imu10 = Icm20948::new_with_mount(
+        RefCellDevice::new(&ch4_bus),0x69,
+        [0.01,0.0,-0.0460],
+        aligned);
+
+    let imu11 = Icm20948::new_with_mount(
+        RefCellDevice::new(&ch5_bus),0x68,
+        [0.0,-0.03,0.0],
+        cots_aligned);
+    let imu12 = Icm20948::new_with_mount(
+        RefCellDevice::new(&ch5_bus),0x69,
+        [0.0,-0.03,-0.0115],
+        cots_aligned);
+
 
     let mut f = Filter::new([
         imu1, imu2, imu3, imu4, imu5, imu6, 
@@ -137,7 +181,8 @@ fn main() -> ! {
         f.read_all();
 
         // Estimate virtual measurements
-        f.colocated_coaligned_avg();
+        // f.colocated_coaligned_avg();
+        f.f_frame_avg();
 
         output.clear();
         write!(output,"{},",timestamp).ok();

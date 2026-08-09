@@ -8,7 +8,8 @@ B - board type.
 C - minor version number
 
 ## IMC20948 Breakout (x.1.x)
-I2C Breakout for two ICM20948 9-axis IMUs
+I2C Breakout for two ICM20948 9-axis IMUs.
+U2 (sensor on the left when text is upright) has I2C address 0x68. U3 has address 0x69.
 
 ### Exposes
 - I2C bus
@@ -20,7 +21,7 @@ I2C Breakout for two ICM20948 9-axis IMUs
 
 ### v0.1.1
 Works. 
-- should add some capacitors to the 1.8V power supply as per spec sheet.
+- should add some capacitors to the 1.8V power supply as per spec sheet
 - print IMU addresses next to them for easy ID
 
 ## Multiplexer Interface (x.2.x)
