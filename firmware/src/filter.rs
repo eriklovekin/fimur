@@ -2,15 +2,6 @@ use crate::math::{
     mat_vec_mult,
 };
 
-// use nalgebra::{
-//     SMatrix,
-// };
-
-// use libm::{
-//     atan2f,
-//     sqrtf,
-// };
-
 use defmt::{
     info,
     panic
@@ -51,26 +42,13 @@ pub struct Filter <I2C>{
     // dt_us: u32,
     sensors: [Icm20948<I2C>; N_IMUS],
     /// All accelerometer measurements transformed into F frame
-    last_accel_f_mps2:     [[f32;3];N_IMUS],
+    last_accel_f_mps2:  [Vector3<f64>;N_IMUS],
     /// All gyroscope measurements transformed into F frame
-    last_gyro_f_rps:    [[f32;3];N_IMUS],
+    last_gyro_f_rps:    [Vector3<f64>;N_IMUS],
     /// Current estimate of accelerations in F frame [g]
     accel_est_f_mps2:   Vector3<f64>, 
-    // /// Current estimate of velocity in L frame [m/s]
-    // v_est_l_mps:        [f32;3],
-    // /// Current estimate of position in L frame [m]
-    // r_est_l_m:          [f32;3],
     /// Current estimate of angular rates in F frame [deg/s]
     w_est_f_rps:        Vector3<f64>,
-    // /// Current estimate of attitude [deg]
-    // att_est_f_deg:      [f32;3],
-    // /// State
-    // state:      SMatrix<f32,12,12>,
-    // /// Covariance Matrix
-    // covariance: SMatrix<f32,12,12>,
-    // /// State transition matrix
-    // state_transition_matrix: SMatrix<f32,12,12>,
-    // process_noise_covariance: SMatrix<f32,12,12>,
 }
 
 impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
@@ -83,17 +61,10 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         Self {
             // dt_us: dt_us,
             sensors: s,
-            last_accel_f_mps2:   [[0.0;3];N_IMUS],
-            last_gyro_f_rps:  [[0.0;3];N_IMUS],
+            last_accel_f_mps2:  [Vector3::new(0.0,0.0,0.0);N_IMUS],
+            last_gyro_f_rps:    [Vector3::new(0.0,0.0,0.0);N_IMUS],
             accel_est_f_mps2:   Vector3::new(0.0,0.0,0.0),
-            // v_est_l_mps:    [0.0;3],
-            // r_est_l_m:      [0.0;3],
             w_est_f_rps:        Vector3::new(0.0,0.0,0.0),
-            // att_est_f_deg:  [0.0;3],
-            // state:          SMatrix::zeros(),
-            // covariance:     SMatrix::identity(), // placeholder until more accurate P0 is implemented
-            // state_transition_matrix:    SMatrix::zeros(),
-            // process_noise_covariance:   SMatrix::zeros(),
         }
     }
 
@@ -115,68 +86,6 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         }
         &mut self.sensors[i]
     }
-
-    // pub fn init_default_kinematics(&mut self) {
-    //     let dt = (self.dt_us as f32) /1.0e6;
-    //     let a = [
-    //         [1.0, 0.0, 0.0, dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    //         [0.0, 1.0, 0.0, 0.0, dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    //         [0.0, 0.0, 1.0, 0.0, 0.0, dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            
-    //         [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    //         [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    //         [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-
-    //         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, dt, 0.0, 0.0],
-    //         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, dt, 0.0],
-    //         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, dt],
-
-    //         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-    //         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
-    //         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-    //     ];
-    //     self.state_transition_matrix = SMatrix::from_fn(|i,j| a[i][j]);
-    // }
-
-    // /// Construct a process noise covariance matrix that assumes 
-    // /// translation and rotation are decoupled.
-    // pub fn init_block_process_noise_covariance(&mut self) {
-    //     let dt = (self.dt_us as f32) /1.0e6;
-    //     // assume process noise is isotropic
-    //     let std_accel: f32 = 1.0; // standard deviation of process acceleration noise; m/s^2
-    //     let std_alpha: f32 = 0.1; // standard deviation of process angular acceleration noise; g
-    //     let mut q = SMatrix::<f32,12,12>::zeros();
-    //     let dt2 = dt * dt;
-    //     let dt3 = dt * dt * dt;
-    //     let dt4 = dt * dt * dt * dt;
-        
-    //     let q_block =  [
-    //         [dt4/4.0,       0.0,        0.0,    dt3/2.0,        0.0,        0.0],
-    //         [    0.0,   dt4/4.0,        0.0,        0.0,    dt3/2.0,        0.0],
-    //         [    0.0,       0.0,    dt4/4.0,        0.0,        0.0,    dt3/2.0],
-            
-    //         [dt3/2.0,        0.0,        0.0,       dt2, 0.0, 0.0],
-    //         [    0.0,    dt3/2.0,        0.0,       0.0, dt2, 0.0],
-    //         [    0.0,        0.0,    dt3/2.0,       0.0, 0.0, dt2],
-    //     ];
-    //     let q_block_trans = 
-    //         SMatrix::<f32,6,6>::from_fn(|i,j| 
-    //             std_accel*std_accel*q_block[i][j]);
-    //     let q_block_rot   = 
-    //         SMatrix::<f32,6,6>::from_fn(|i,j| 
-    //             std_alpha*std_alpha*q_block[i][j]);
-    //     for i in 0..12 {
-    //         for j in 0..12 {
-    //             if i < 6 && j < 6 {
-    //                 q[(i,j)] = q_block_trans[(i,j)];
-    //             } else if i >= 6 && j >= 6 {
-    //                 q[(i,j)] = q_block_rot[(i,j)];
-
-    //             }
-    //         }
-    //     }
-    //     self.process_noise_covariance = SMatrix::from_fn(|i,j| q[(i,j)]);
-    // }
 
     // /// Kalman Filter predict step:
     // /// x_k = A*X_k-1 + B*u_k
@@ -332,7 +241,8 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         for (i,s) in self.sensors.iter().enumerate() {
             ret[i] = self.transform_imu_gyro_s2f(s);
         }
-        self.last_gyro_f_rps = ret;
+        self.last_gyro_f_rps = ret.map(|a| {
+            Vector3::new(a[0] as f64, a[1] as f64, a[2] as f64)});
         ret
     }
 
@@ -342,7 +252,8 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         for (i,s) in self.sensors.iter().enumerate() {
             ret[i] = self.transform_imu_accel_s2f(s);
         }
-        self.last_accel_f_mps2 = ret;
+        self.last_accel_f_mps2 = ret.map(|a| {
+            Vector3::new(a[0] as f64, a[1] as f64, a[2] as f64)});
         ret
     }
     

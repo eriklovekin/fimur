@@ -33,7 +33,8 @@ def compute_allan_variance(dt,x):
 
 if __name__ == "__main__":
     path = "./logs/"
-    timestamp = "20260808-235938/"
+    timestamp = "20260809-113733/"
+    # timestamp = "20260808-235938/"
     # timestamp = "20260725-233150/"
     # timestamp = "20260807-052335/"
     sensor = ["accel", "gyro"]
@@ -64,7 +65,7 @@ if __name__ == "__main__":
 
             z_numeric = pd.to_numeric(df["z"], errors="coerce")
             bad_mask = z_numeric.isna() & df["z"].notna()  # failed to parse, but wasn't already NaN/empty
-            # print(df.loc[bad_mask, "z"])
+            print(df.loc[bad_mask, "z"])
             
             nan_counts = df.isna().sum()
             if nan_counts.any():
@@ -72,28 +73,22 @@ if __name__ == "__main__":
                 nan_rows = df[df.isna().any(axis=1)]
                 print(nan_rows.head(20))
                 print(f"first NaN at row: {nan_rows.index.min() if len(nan_rows) else 'none'}")
+
             # dt = (df["t_us"][2] - df["t_us"][1])/1e6
-            dt = (df["t_us"][-1] - df["t_us"][1])/(1e6*(df["t_us"].size()-1))
+            dt = (df["t_us"].iloc[-1] - df["t_us"].iloc[0]) / (1e6 * (df["t_us"].size - 1))            
             dt_diag = np.diff(df["t_us"])
             mean_dt = np.mean(dt_diag)
             std_dt = np.std(dt_diag)
-            w = pg.GraphicsLayoutWidget(show=True, title=f"Loop Time histogram - {timestamp}{sensor[j]}{i+1}")
-            w.resize(1200, 800)
-            p1 = w.addPlot()
-            p1.setTitle(f"Loop Time histogram - {timestamp}{sensor[j]}{i+1}, mean: {mean_dt}, std: {std_dt}")
-            # p1.setLabel('left', '', units="s")
-            p1.setLabel('bottom', 'Loop time', units="s")
-            y, x = np.histogram(dt_diag, bins=30)
-            p1.PlotCurveItem(x,y,stepMode=True, fillLevel=0, brush=(0, 150, 255, 150), pen='k')
-
+              
             win = pg.GraphicsLayoutWidget(show=True, title=f"Allan Variance - {timestamp}{sensor[j]}{i+1}")
             win.resize(1200, 800)
-
             p = win.addPlot()
             p.setTitle(f"{timestamp}{sensor[j]}{i+1}")
             p.setLabel('left', 'Allan Deviation &sigma;(&tau;)', units=f"{units[j]}")
             p.setLabel('bottom', 'window size &tau;', units='s')
             ax = p.getAxis('left')
+            ax.enableAutoSIPrefix(False)
+            ax = p.getAxis('bottom')
             ax.enableAutoSIPrefix(False)
             p.addLegend(offset = (-10,10))
             p.setLogMode(x=True, y=True)
@@ -103,7 +98,7 @@ if __name__ == "__main__":
                 raw = df[axis[a]].to_numpy()
 
                 tau, adev, adev_err, n = allantools.oadev(
-                    raw, rate=1/dt, data_type="freq", taus="octave"
+                    raw, rate=1/mean_dt, data_type="freq", taus="octave"
                 )
 
                 # print(f"{axis[a]}-axis...")
@@ -147,6 +142,15 @@ if __name__ == "__main__":
             # exporter.parameters()['background'] = 'w'
             # print(f"writing to {exname}")
             # exporter.export(f"{exname}")
+
+    w = pg.GraphicsLayoutWidget(show=True, title=f"Loop Time histogram - {timestamp}{sensor[j]}{i+1}")
+    w.resize(1200, 800)
+    p1 = w.addPlot()
+    p1.setTitle(f"Loop Time histogram - mean: {mean_dt}, std: {std_dt}")
+    # p1.setLabel('left', '', units="s")
+    p1.setLabel('bottom', 'Loop time', units="us")
+    y, x = np.histogram(dt_diag, bins=30)
+    p1.plot(x, y, stepMode="center", fillLevel=0, brush=(0, 0, 255, 100))
 
     print("Stack stats:")
     for j in range(len(sensor)):
