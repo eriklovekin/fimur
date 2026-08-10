@@ -36,6 +36,7 @@ Ensure the following libraries are installed using `pip install <library>`
 - pyqtgraph
 - pyside6
 - allantools
+- PyQt5
 
 ### PyQt
 - `sudo apt update`

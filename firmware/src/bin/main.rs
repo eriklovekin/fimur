@@ -187,7 +187,7 @@ fn main() -> ! {
         output.clear();
         write!(output,"{},",timestamp).ok();
         write!(output,"{}", f.report_raw()).ok();
-        write!(output,"{}", f.report_virtual_meas()).ok();
+        // write!(output,"{}", f.report_virtual_meas()).ok();
         println!("{}",output);
         let tmp = color.r;
         color.r = color.b;
