@@ -11,6 +11,10 @@ use imu_traits::{
     constants
 };
 
+use defmt::{
+    info,
+};
+
 mod registers;
 use registers::bank0::*;
 // use registers::bank1::*;

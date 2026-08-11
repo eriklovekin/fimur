@@ -151,9 +151,9 @@ fn main() -> ! {
     f.init();
     
     for s in 0..f.get_n_sensors() {
-        f.sensor(s).set_accelerometer_scale(3)
+        f.sensor(s).set_accelerometer_scale(0)
             .expect("failed to set accelerometer range");
-        f.sensor(s).set_gyroscope_scale(3)
+        f.sensor(s).set_gyroscope_scale(0)
             .expect("failed to set gyroscope range");
         f.sensor(s).set_origin_f([0.0, 0.0, 0.01]);
         f.sensor(s).set_rotation_dcm_s2f([  

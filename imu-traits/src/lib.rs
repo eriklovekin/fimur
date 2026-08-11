@@ -55,7 +55,7 @@ pub trait Imu {
     
     /// Reads newest accelerometer data in G's as (x,y,z)
     /// 
-    /// Assumes selected accelerometer full-scale range ACCEL_FS=0
+    /// Assumes selected accelerometer full-scale range ACCEL_FS=3
     /// 
     /// # TODO
     /// Read the selected full-scale range and select the required scale factor
@@ -90,7 +90,7 @@ pub trait Imu {
 
     /// Reads newest gyroscope data in deg/s
     /// 
-    /// Assumes selected gyroscope full-scale range GYRO_FS_SEL=0
+    /// Assumes selected gyroscope full-scale range GYRO_FS_SEL=3
     /// 
     /// # TODO
     /// Read the selected full-scale range and select the required scale factor

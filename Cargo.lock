@@ -157,14 +157,14 @@ version = "0.3.100"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f0963443817029b2024136fc4dd07a5107eb8f977eaf18fcd1fdeb11306b64ad"
 dependencies = [
- "defmt 1.0.1",
+ "defmt 1.1.1",
 ]
 
 [[package]]
 name = "defmt"
-version = "1.0.1"
+version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "548d977b6da32fa1d1fda2876453da1e7df63ad0304c8b3dae4dbe7b96f39b78"
+checksum = "e2953bfe4f93bbd20cc71198842756f77d161884c99ebbabc41d80231ded88d1"
 dependencies = [
  "bitflags 1.3.2",
  "defmt-macros",
@@ -172,12 +172,11 @@ dependencies = [
 
 [[package]]
 name = "defmt-macros"
-version = "1.0.1"
+version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d4fc12a85bcf441cfe44344c4b72d58493178ce635338a3f3b78943aceb258e"
+checksum = "bad9c72e7ca2137e0dc3813245a0d282fd6daad32fd800af018306a9169b5fe8"
 dependencies = [
  "defmt-parser",
- "proc-macro-error2",
  "proc-macro2",
  "quote",
  "syn",
@@ -244,7 +243,7 @@ version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dc2d050bdc5c21e0862a89256ed8029ae6c290a93aecefc73084b3002cdebb01"
 dependencies = [
- "defmt 1.0.1",
+ "defmt 1.1.1",
 ]
 
 [[package]]
@@ -278,7 +277,7 @@ checksum = "73974a3edbd0bd286759b3d483540f0ebef705919a5f56f4fc7709066f71689b"
 dependencies = [
  "cfg-if",
  "critical-section",
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "embedded-io-async 0.6.1",
  "futures-core",
  "futures-sink",
@@ -344,7 +343,7 @@ version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9eb1aa714776b75c7e67e1da744b81a129b3ff919c8712b5e1b32252c1f07cc7"
 dependencies = [
- "defmt 1.0.1",
+ "defmt 1.1.1",
 ]
 
 [[package]]
@@ -363,7 +362,7 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2564b9f813c544241430e147d8bc454815ef9ac998878d30cc3055449f7fd4c0"
 dependencies = [
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "embedded-io 0.7.1",
 ]
 
@@ -388,7 +387,7 @@ version = "1.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "25b07a8dfbbbfc0064c0a6bdf9edcf966de6b1c33ce344bdeca3b41615452634"
 dependencies = [
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "enumset_derive",
 ]
 
@@ -417,7 +416,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3318413fb566c7227387f67736cf70cd74d80a11f2bb31c7b95a9eb48d079669"
 dependencies = [
  "cfg-if",
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "document-features",
  "esp-config",
  "esp-metadata-generated",
@@ -434,7 +433,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02a56964ab5479ac20c9cf76fa3b0d3f2233b20b5d8554e81ef5d65f63c20567"
 dependencies = [
  "cfg-if",
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "document-features",
  "embedded-storage",
  "esp-config",
@@ -469,7 +468,7 @@ dependencies = [
  "bytemuck",
  "cfg-if",
  "critical-section",
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "delegate",
  "digest",
  "document-features",
@@ -550,7 +549,7 @@ version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a30e6c9fbcc01c348d46706fef8131c7775ab84c254a3cd65d0cd3f6414d592"
 dependencies = [
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "document-features",
  "esp-metadata-generated",
  "esp-sync",
@@ -564,7 +563,7 @@ version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "502744a5b1e7268d27fd2a4e56ad45efe42ead517d6c517a6961540de949b0ee"
 dependencies = [
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "document-features",
  "riscv",
  "riscv-rt",
@@ -588,7 +587,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d44974639b4e88914f83fe60d2832c00276657d7d857628fdfc966cc7302e8a8"
 dependencies = [
  "cfg-if",
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "document-features",
  "embassy-sync 0.6.2",
  "embassy-sync 0.7.2",
@@ -604,7 +603,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b76170a463d18f888a1ad258031901036fd827a9ef126733053ba5f8739fb0c8"
 dependencies = [
  "critical-section",
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "vcell",
 ]
 
@@ -615,7 +614,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e62cf8932966b8d445b6f1832977b468178f0a84effb2e9fda89f60c24d45aa3"
 dependencies = [
  "critical-section",
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "vcell",
 ]
 
@@ -626,7 +625,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "356af3771d0d6536c735bf71136594f4d1cbb506abf6e0c51a6639e9bf4e7988"
 dependencies = [
  "critical-section",
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "vcell",
 ]
 
@@ -637,7 +636,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f5e511df672d79cd63365c92045135e01ba952b6bddd25b660baff5e1110f6b"
 dependencies = [
  "critical-section",
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "vcell",
 ]
 
@@ -648,7 +647,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed4a50bbd1380931e095e0973b9b12f782a9c481f2edf1f7c42e7eb4ff736d6d"
 dependencies = [
  "critical-section",
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "vcell",
 ]
 
@@ -659,7 +658,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "98574d4c577fbe888fe3e6df7fc80d25a05624d9998f7d7de1500ae21fcca78f"
 dependencies = [
  "critical-section",
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "vcell",
 ]
 
@@ -670,7 +669,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1810d8ee4845ef87542af981e38eb80ab531d0ef1061e1486014ab7af74c337a"
 dependencies = [
  "critical-section",
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "vcell",
 ]
 
@@ -679,7 +678,7 @@ name = "fimur"
 version = "0.1.0"
 dependencies = [
  "critical-section",
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "embedded-hal 1.0.0",
  "embedded-hal-bus",
  "esp-backtrace",
@@ -965,6 +964,7 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 name = "icm20948"
 version = "0.1.0"
 dependencies = [
+ "defmt 1.1.1",
  "embedded-hal 1.0.0",
  "imu-traits",
 ]
@@ -1205,28 +1205,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "proc-macro-error-attr2"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96de42df36bb9bba5542fe9f1a054b8cc87e172759a1868aa05c1f3acc89dfc5"
-dependencies = [
- "proc-macro2",
- "quote",
-]
-
-[[package]]
-name = "proc-macro-error2"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11ec05c52be0a07b08061f7dd003e7d7092e0472bc731b4af7bb1ef876109802"
-dependencies = [
- "proc-macro-error-attr2",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "proc-macro2"
 version = "1.0.105"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1301,7 +1279,7 @@ version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d07b9f3a0eff773fc4df11f44ada4fa302e529bff4b7fe7e6a4b98a65ce9174"
 dependencies = [
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "riscv",
  "riscv-pac",
  "riscv-rt-macros",
@@ -1627,7 +1605,7 @@ version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8709f037fb123fe7ff146d2bce86f9dc0dfc53045c016bfd9d703317b6502845"
 dependencies = [
- "defmt 1.0.1",
+ "defmt 1.1.1",
  "document-features",
  "xtensa-lx",
  "xtensa-lx-rt-proc-macros",
