@@ -11,9 +11,9 @@ use imu_traits::{
     constants
 };
 
-use defmt::{
-    info,
-};
+// use defmt::{
+//     info,
+// };
 
 use nalgebra::{
     Matrix3, 

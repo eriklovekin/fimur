@@ -1,7 +1,3 @@
-use crate::math::{
-    mat_vec_mult,
-};
-
 use defmt::{
     info,
     panic
