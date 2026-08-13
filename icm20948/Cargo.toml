@@ -1,0 +1,10 @@
+[package]
+name = "icm20948"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+defmt = "1.1.1"
+embedded-hal = "1.0"
+imu-traits = { path = "../imu-traits"}
+nalgebra = { version = "0.35", default-features = false, features = ["libm"] }

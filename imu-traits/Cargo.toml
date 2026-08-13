@@ -1,0 +1,8 @@
+[package]
+name = "imu-traits"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+heapless = "0.9.3"
+nalgebra = { version = "0.35", default-features = false, features = ["libm"] }
