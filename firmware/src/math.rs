@@ -17,7 +17,7 @@ use libm::{
 /// Body angular rates are read from the IMU
 /// # Parameters
 /// - w: Body angular rates in (deg/s) as [x, y, z]
-pub fn wB_to_dquaternion(w:[f32;3], dt_us: u64) -> [f32;4] {
+pub fn w_b_to_dquaternion(w:[f32;3], dt_us: u64) -> [f32;4] {
     let w_mag = sqrtf(w[0]*w[0] + w[1]*w[1] + w[2]*w[2]);
     let dt_s = dt_us as f32 / 1e6;
     let q1 = cosf(w_mag*dt_s/2.0);

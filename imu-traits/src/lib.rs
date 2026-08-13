@@ -5,6 +5,11 @@ use crate::constants::{EARTH_GRAVITY, RAD_TO_DEG};
 
 pub mod constants;
 
+use nalgebra::{
+    Matrix3, 
+    Vector3,
+};
+
 pub trait Imu {
     type Error;
 
@@ -14,7 +19,7 @@ pub trait Imu {
     /// 
     /// Format [xF, yF, zF]
     /// Units: m
-    fn origin_f(&self) -> [f32;3];
+    fn origin_f(&self) -> Vector3<f32>;
 
     // /// Returns rotation vector from S to F frame
     // /// 
@@ -22,7 +27,7 @@ pub trait Imu {
     // fn rotation_s2f(&mut self) -> [f32;4];
 
     /// Returns rotation DCM from S to F frame
-    fn rotation_dcm_s2f(&self) -> [[f32;3];3];
+    fn rotation_dcm_s2f(&self) -> Matrix3<f32>;
 
     /// Returns most recently measurents from accelerometer and gyroscope
     /// # TODO
@@ -33,7 +38,7 @@ pub trait Imu {
     /// 
     /// Format [xF, yF, zF]
     /// Units: m
-    fn set_origin_f(&mut self, origin: [f32;3]);
+    fn set_origin_f(&mut self, origin: Vector3<f32>);
 
     /// Set rotation vector from S frame to F frame
     /// 
@@ -41,10 +46,10 @@ pub trait Imu {
     // fn set_rotation_quat_s2f(&mut self, rotation: [f32;4]);
 
     /// Set rotation matrix from S frame to F frame
-    fn set_rotation_dcm_s2f(&mut self, rotation: [[f32;3];3]);
+    fn set_rotation_dcm_s2f(&mut self, rotation: Matrix3<f32>);
 
     /// Set both origin of S frame in F frame and rotation DCM from S to F
-    fn set_mount(&mut self, origin: [f32;3], rotation: [[f32;3];3]);
+    fn set_mount(&mut self, origin: Vector3<f32>, rotation: Matrix3<f32>);
 
     /// Initializes IMU
     /// 
@@ -55,7 +60,7 @@ pub trait Imu {
     
     /// Reads newest accelerometer data in G's as (x,y,z)
     /// 
-    /// Assumes selected accelerometer full-scale range ACCEL_FS=3
+    /// Assumes selected accelerometer full-scale range ACCEL_FS=0
     /// 
     /// # TODO
     /// Read the selected full-scale range and select the required scale factor
@@ -90,7 +95,7 @@ pub trait Imu {
 
     /// Reads newest gyroscope data in deg/s
     /// 
-    /// Assumes selected gyroscope full-scale range GYRO_FS_SEL=3
+    /// Assumes selected gyroscope full-scale range GYRO_FS_SEL=0
     /// 
     /// # TODO
     /// Read the selected full-scale range and select the required scale factor
@@ -225,34 +230,35 @@ impl Measurement {
         self.gyroscope_s_rps = gyro;
     }
 
-    pub fn get_accel_s_mps2(&self) -> [f32;3] {
-        [
+    pub fn get_accel_s_mps2(&self) -> Vector3<f32> {
+        Vector3::new(
             self.accelerometer_s_mps2.0, 
             self.accelerometer_s_mps2.1, 
             self.accelerometer_s_mps2.2
-        ]
+        )
     }
-    pub fn get_accel_s_g(&self) -> [f32;3] {
-        [
+    pub fn get_accel_s_g(&self) -> Vector3<f32> {
+        Vector3::new(
             self.accelerometer_s_mps2.0/EARTH_GRAVITY, 
             self.accelerometer_s_mps2.1/EARTH_GRAVITY, 
             self.accelerometer_s_mps2.2/EARTH_GRAVITY
-        ]
+        )
     }
 
-    pub fn get_gyro_s_rps(&self) -> [f32;3] {
-        [
+    pub fn get_gyro_s_rps(&self) -> Vector3<f32> {
+        Vector3::new(
             self.gyroscope_s_rps.0, 
             self.gyroscope_s_rps.1, 
-            self.gyroscope_s_rps.2]
+            self.gyroscope_s_rps.2
+        )
     }
 
-    pub fn get_gyro_s_dps(&self) -> [f32;3] {
-        [
+    pub fn get_gyro_s_dps(&self) -> Vector3<f32> {
+        Vector3::new(
             self.gyroscope_s_rps.0*RAD_TO_DEG, 
             self.gyroscope_s_rps.1*RAD_TO_DEG, 
             self.gyroscope_s_rps.2*RAD_TO_DEG
-        ]
+        )
     }
 
     /// Get last read data as a comma-separated string
@@ -261,6 +267,20 @@ impl Measurement {
     /// Accel: m/s^2
     /// Gyro: rad/s
     pub fn report(&self) -> String<256> {
+        use core::fmt::Write;
+        let mut s: String<256> = String::new();
+        write!(s, "{},{},{},{},{},{},", 
+            self.accelerometer_s_mps2.0, self.accelerometer_s_mps2.1, self.accelerometer_s_mps2.2,
+            self.gyroscope_s_rps.0, self.gyroscope_s_rps.1, self.gyroscope_s_rps.2).ok();
+        s
+    }
+
+    /// Get last read data rotated into F frame as a comma-separated string
+    /// Ignores errors
+    /// Units:
+    /// Accel: m/s^2
+    /// Gyro: rad/s
+    pub fn report_rotated(&self) -> String<256> {
         use core::fmt::Write;
         let mut s: String<256> = String::new();
         write!(s, "{},{},{},{},{},{},", 

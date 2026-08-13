@@ -30,5 +30,5 @@ libm = "0.2.16"
 embedded-hal-bus = "0.3.0"
 embedded-hal = "1.0"
 heapless = "0.9.2"
-nalgebra = { version = "0.34.2", default-features = false, features = ["libm"] }
+nalgebra = { version = "0.35", default-features = false, features = ["libm"] }
 xca9548a = "1.0.0"

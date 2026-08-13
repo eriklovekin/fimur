@@ -15,6 +15,11 @@ use defmt::{
     info,
 };
 
+use nalgebra::{
+    Matrix3, 
+    Vector3,
+};
+
 mod registers;
 use registers::bank0::*;
 // use registers::bank1::*;
@@ -29,9 +34,9 @@ pub struct Icm20948<I2C> {
     i2c: I2C,
     address: u8,
     /// position of S origin of IMU in F frame
-    origin_f: [f32;3], 
+    origin_f: Vector3<f32>, 
     /// Direction Cosine Matrix rotating from S to F frame
-    rotation_dcm_s2f: [[f32; 3];3],
+    rotation_dcm_s2f: Matrix3<f32>,
     // measured data
     meas: Measurement,
 }
@@ -41,15 +46,16 @@ impl<I2C> Icm20948<I2C> {
         Self {
             i2c, 
             address, 
-            origin_f: [0.0;3], 
-            rotation_dcm_s2f: [[1.0, 0.0, 0.0],
-                               [0.0, 1.0, 0.0],
-                               [0.0, 0.0, 1.0]],
+            origin_f: Vector3::new(0.0,0.0,0.0), 
+            rotation_dcm_s2f: Matrix3::new(
+                1.0, 0.0, 0.0,
+                0.0, 1.0, 0.0,
+                0.0, 0.0, 1.0),
             meas: Measurement::init()
         }
     }
 
-    pub fn new_with_mount(i2c: I2C, address: u8, origin_f: [f32; 3], rotation_s2f: [[f32; 3];3]) -> Self {
+    pub fn new_with_mount(i2c: I2C, address: u8, origin_f: Vector3<f32>, rotation_s2f: Matrix3<f32>) -> Self {
         Self {
             i2c, 
             address, 
@@ -66,11 +72,11 @@ where
 {
     type Error = error::ImuError<E>;
 
-    fn origin_f(&self) -> [f32;3] {
+    fn origin_f(&self) -> Vector3<f32> {
         self.origin_f
     }
 
-    fn rotation_dcm_s2f(&self) -> [[f32;3];3] {
+    fn rotation_dcm_s2f(&self) -> Matrix3<f32> {
         self.rotation_dcm_s2f
     }
 
@@ -78,15 +84,15 @@ where
         self.meas
     }
 
-    fn set_origin_f(&mut self, origin: [f32;3]) {
+    fn set_origin_f(&mut self, origin: Vector3<f32>) {
         self.origin_f = origin;
     }
 
-    fn set_rotation_dcm_s2f(&mut self, rotation: [[f32;3];3]) {
+    fn set_rotation_dcm_s2f(&mut self, rotation: Matrix3<f32>) {
         self.rotation_dcm_s2f = rotation;
     }
 
-    fn set_mount(&mut self, origin: [f32;3], rotation: [[f32;3];3]) {
+    fn set_mount(&mut self, origin: Vector3<f32>, rotation: Matrix3<f32>) {
         self.set_origin_f(origin);
         self.set_rotation_dcm_s2f(rotation);
     }

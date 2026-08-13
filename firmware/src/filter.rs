@@ -23,7 +23,8 @@ use core::fmt::Write;
 // };
 
 use nalgebra::{
-    Matrix3, Vector3,
+    Matrix3, 
+    Vector3,
 };
 
 const N_IMUS: usize = 12; // number of IMUs being used
@@ -162,13 +163,13 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
     /// # Return
     /// average of all measurements from all sensors
     pub fn colocated_coaligned_avg(&mut self) {
-        let mut state = [[0.0f32;6];N_IMUS];
+        let mut state = [[0.0f64;6];N_IMUS];
         for (i, si) in self.sensors.iter().enumerate() {
             let a = si.meas().get_accel_s_g();
             let g = si.meas().get_gyro_s_dps();
             for j in 0..3 {
-                state[i][j] = a[j];
-                state[i][j+3] = g[j];
+                state[i][j] = a[j] as f64;
+                state[i][j+3] = g[j] as f64;
             }
         }
         let avg_state = self.average_filter(state);
@@ -182,37 +183,37 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
             avg_state[5] as f64);
     }
 
-    /// Assume that:
-    /// - Relative poses of IMUs are known
-    /// - Identical sensors
-    /// # Return
-    /// average of all measurements from all sensors in F frame
-    pub fn f_frame_avg(&mut self) {
-        let mut state = [[0.0f32;6];N_IMUS];
-        for (i, si) in self.sensors.iter().enumerate() {
-            let a = self.transform_imu_accel_s2f(si);
-            let g = self.transform_imu_gyro_s2f(si);
-            for j in 0..3 {
-                state[i][j] = a[j];
-                state[i][j+3] = g[j];
-            }
-        }
-        let avg_state = self.average_filter(state);
-        self.accel_est_f_mps2  = Vector3::new(
-            avg_state[0] as f64,
-            avg_state[1] as f64,
-            avg_state[2] as f64);
-        self.w_est_f_rps    = Vector3::new(
-            avg_state[3] as f64,
-            avg_state[4] as f64,
-            avg_state[5] as f64);
-    }
+    // /// Assume that:
+    // /// - Relative poses of IMUs are known
+    // /// - Identical sensors
+    // /// # Return
+    // /// average of all measurements from all sensors in F frame
+    // pub fn f_frame_avg(&mut self) {
+    //     let mut state = [[0.0f64;6];N_IMUS];
+    //     for (i, si) in self.sensors.iter().enumerate() {
+    //         let a = self.transform_imu_accel_s2f(si);
+    //         let g = self.transform_imu_gyro_s2f(si);
+    //         for j in 0..3 {
+    //             state[i][j] = a[j];
+    //             state[i][j+3] = g[j];
+    //         }
+    //     }
+    //     let avg_state = self.average_filter(state);
+    //     self.accel_est_f_mps2  = Vector3::new(
+    //         avg_state[0] as f64,
+    //         avg_state[1] as f64,
+    //         avg_state[2] as f64);
+    //     self.w_est_f_rps    = Vector3::new(
+    //         avg_state[3] as f64,
+    //         avg_state[4] as f64,
+    //         avg_state[5] as f64);
+    // }
 
     /// Average of M N-axis sensors
     /// # Parameters
     /// - ar: array containing all sensor measurements
-    pub fn average_filter<const N_AXES: usize, const M_SENSORS: usize>(&mut self, ar: [[f32;N_AXES];M_SENSORS]) -> [f32;N_AXES] {
-        let ret = self.weighted_average_filter(ar,[1.0/M_SENSORS as f32;M_SENSORS]);
+    pub fn average_filter<const N_AXES: usize, const M_SENSORS: usize>(&mut self, ar: [[f64;N_AXES];M_SENSORS]) -> [f64;N_AXES] {
+        let ret = self.weighted_average_filter(ar,[1.0/M_SENSORS as f64;M_SENSORS]);
         ret
     }
 
@@ -223,9 +224,9 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
     /// # Parameters
     /// - ar: array containing all sensor measurements
     /// - w: array of weights (1 per sensor)
-    pub fn weighted_average_filter<const N_AXES: usize, const M_SENSORS: usize>(&mut self, ar: [[f32;N_AXES];M_SENSORS], w: [f32;M_SENSORS]) -> [f32;N_AXES] {
-        let mut ret: [f32;N_AXES] = [0.0;N_AXES];
-        let w_sum: f32 = w.iter().sum(); /* in case total != 1 */
+    pub fn weighted_average_filter<const N_AXES: usize, const M_SENSORS: usize>(&mut self, ar: [[f64;N_AXES];M_SENSORS], w: [f64;M_SENSORS]) -> [f64;N_AXES] {
+        let mut ret: [f64;N_AXES] = [0.0;N_AXES];
+        let w_sum: f64 = w.iter().sum(); /* in case total != 1 */
         for i in 0..N_AXES {
             for j in 0..M_SENSORS {
                 ret[i] += w[j]*ar[j][i];
@@ -236,8 +237,8 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
     }
 
     /// For each member sensor, transform gyro measurement into F frame
-    pub fn transform_all_gyro_s2f(&mut self) -> [[f32;3];N_IMUS] {
-        let mut ret: [[f32;3];N_IMUS] = [[0.0; 3]; N_IMUS];
+    pub fn transform_all_gyro_s2f(&mut self) -> [Vector3<f64>;N_IMUS] {
+        let mut ret: [Vector3<f64>;N_IMUS] = [Vector3::new(0.0,0.0,0.0); N_IMUS];
         for (i,s) in self.sensors.iter().enumerate() {
             ret[i] = self.transform_imu_gyro_s2f(s);
         }
@@ -246,38 +247,38 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         ret
     }
 
-    /// For each member sensor, transform accelerometer measurement into F frame
-    pub fn transform_all_accel_s2f(&mut self) -> [[f32;3];N_IMUS] {
-        let mut ret: [[f32;3];N_IMUS] = [[0.0; 3]; N_IMUS];
-        for (i,s) in self.sensors.iter().enumerate() {
-            ret[i] = self.transform_imu_accel_s2f(s);
-        }
-        self.last_accel_f_mps2 = ret.map(|a| {
-            Vector3::new(a[0] as f64, a[1] as f64, a[2] as f64)});
-        ret
-    }
+    // /// For each member sensor, transform accelerometer measurement into F frame
+    // pub fn transform_all_accel_s2f(&mut self) -> [Vector3<f64>;N_IMUS] {
+    //     let mut ret: [Vector3<f64>;N_IMUS] = [Vector3::new(0.0,0.0,0.0); N_IMUS];
+    //     for (i,s) in self.sensors.iter().enumerate() {
+    //         ret[i] = self.transform_imu_accel_s2f(s);
+    //     }
+    //     self.last_accel_f_mps2 = ret.map(|a| {
+    //         Vector3::new(a[0] as f64, a[1] as f64, a[2] as f64)});
+    //     ret
+    // }
     
     /// For an Imu object, transform its gyroscope measurement into the F frame
-    pub fn transform_imu_gyro_s2f(&self, imu: &Icm20948<I2C>) -> [f32;3] {
+    pub fn transform_imu_gyro_s2f(&self, imu: &Icm20948<I2C>) -> Vector3<f64> {
         self.transform_gyro_s2f(
-            imu.rotation_dcm_s2f(),
-            imu.meas().get_gyro_s_dps(),
+            imu.rotation_dcm_s2f().cast::<f64>(),
+            imu.meas().get_gyro_s_dps().cast::<f64>(),
         )
     }
 
-    /// For an Imu object, transform its accelerometer measurement into the F frame
-    pub fn transform_imu_accel_s2f(
-        &self, 
-        imu: &Icm20948<I2C>
-    ) -> [f32;3] {
-        self.transform_accel_s2f(
-            imu.rotation_dcm_s2f(),
-            imu.origin_f(),
-            imu.meas().get_accel_s_mps2(),
-            self.w_est_f_rps,
-            self.accel_est_f_mps2
-        )
-    }
+    // /// For an Imu object, transform its accelerometer measurement into the F frame
+    // pub fn transform_imu_accel_s2f(
+    //     &self, 
+    //     imu: &Icm20948<I2C>
+    // ) -> Vector3<f64> {
+    //     self.transform_accel_s2f(
+    //         imu.rotation_dcm_s2f().cast::<f64>(),
+    //         imu.origin_f().cast::<f64>(),
+    //         imu.meas().get_accel_s_mps2().cast::<f64>(),
+    //         self.w_est_f_rps,
+    //         self.accel_est_f_mps2
+    //     )
+    // }
 
     /// From a 3-axis accelerometer measurement in an S frame, calculate the measurement in the F frame
     /// 
@@ -292,25 +293,17 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
     /// - a_f_rps2: rotational acceleration of body in F frame [rad/s2]
     pub fn transform_accel_s2f(
         &self, 
-        s2f: [[f32;3];3], 
-        origin_f: [f32;3], 
-        accel_s: [f32;3], 
+        s2f: Matrix3<f64>, 
+        origin_f: Vector3<f64>, 
+        accel_s: Vector3<f64>, 
         w_f_rps: Vector3<f64>, 
         a_f_rps2: Vector3<f64>
-    ) -> [f32;3] {
-        let s2f_nalg:Matrix3<f64> = Matrix3::new(
-            s2f[0][0] as f64,s2f[0][1] as f64,s2f[0][2] as f64,
-            s2f[1][0] as f64,s2f[1][1] as f64,s2f[1][2] as f64,
-            s2f[2][0] as f64,s2f[2][1] as f64,s2f[2][2] as f64);
-        let a_s:Vector3<f64> = Vector3::new(
-            accel_s[0] as f64,accel_s[1] as f64,accel_s[2] as f64);
-        let o_f:Vector3<f64> = Vector3::new(
-            origin_f[0] as f64,origin_f[1] as f64,origin_f[2] as f64);
-        let res: Vector3<f64>=
-            s2f_nalg*a_s - 
-            w_f_rps.cross(&(w_f_rps.cross(&o_f))) -
-            a_f_rps2.cross(&o_f);
-        [res[0] as f32,res[1] as f32, res[2] as f32]
+    ) -> Vector3<f64> {
+        let ret: Vector3<f64>=
+            s2f*accel_s - 
+            w_f_rps.cross(&(w_f_rps.cross(&origin_f))) -
+            a_f_rps2.cross(&origin_f);
+        ret
     }
 
     /// From a 3-axis gyroscope measurement in an S frame, calculate the measurement in the F frame
@@ -322,10 +315,10 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
     /// - s2f: DCM rotating from S to F frame
     pub fn transform_gyro_s2f(
         &self, 
-        s2f: [[f32;3];3],
-        gyro_s: [f32;3], 
-    ) -> [f32;3] {
-        mat_vec_mult(s2f,gyro_s)
+        s2f: Matrix3<f64>,
+        gyro_s: Vector3<f64>, 
+    ) -> Vector3<f64> {
+        s2f*gyro_s
     }
 
     /// Read accelerometer and gyroscope measurements from all sensors
@@ -353,6 +346,19 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
     /// ex. "accel1_x,accel1_y,accel1_z,gyro1_x,gyro1_y,gyro1_z,accel2_x,..."
     /// Ignores errors
     pub fn report_raw(&self) -> String<REPORT_RAW_SIZE> {
+        let mut s: String<REPORT_RAW_SIZE> = String::new();
+        for si in self.sensors.iter() {
+            write!(s,"{}",si.meas().report()).ok();
+        }
+        s
+    }
+
+    /// Report last read data from all sensors as a comma-separated string
+    /// all measurements rotated into F frame
+    /// Groups measurements by sensor not by type
+    /// ex. "accel1_x,accel1_y,accel1_z,gyro1_x,gyro1_y,gyro1_z,accel2_x,..."
+    /// Ignores errors
+    pub fn report_raw_rotated(&self) -> String<REPORT_RAW_SIZE> {
         let mut s: String<REPORT_RAW_SIZE> = String::new();
         for si in self.sensors.iter() {
             write!(s,"{}",si.meas().report()).ok();

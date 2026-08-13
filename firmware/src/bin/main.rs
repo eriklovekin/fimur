@@ -32,6 +32,11 @@ use fimur::filter::{
     Filter,
 };
 
+use nalgebra::{
+    Matrix3, 
+    Vector3,
+};
+
 use xca9548a::{Xca9548a, SlaveAddr};
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
@@ -61,17 +66,17 @@ fn main() -> ! {
     // RefCell needed so multiple multiplexers or I2C devices can share the same bus
     let i2c_bus = RefCell::new(i2c);
 
-    let aligned: [[f32;3];3]= [
-        [1.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0],
-        [0.0, 0.0, 1.0]
-    ];
+    let aligned: Matrix3<f32> = Matrix3::new(
+        1.0, 0.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 0.0, 1.0
+    );
 
-    let cots_aligned: [[f32;3];3]= [
-        [ 0.0, -1.0,  0.0],
-        [-1.0,  0.0,  0.0],
-        [ 0.0,  0.0, -1.0]
-    ];
+    let cots_aligned: Matrix3<f32> = Matrix3::new(
+         0.0, -1.0,  0.0,
+        -1.0,  0.0,  0.0,
+         0.0,  0.0, -1.0
+    );
 
     // let switch_address = SlaveAddr::Alternative(false,false,false);
     let switch_address = SlaveAddr::default();
@@ -91,56 +96,56 @@ fn main() -> ! {
 
     let imu1 = Icm20948::new_with_mount(
         RefCellDevice::new(&ch0_bus),0x68,
-        [-0.01,0.0,0.0],
+        Vector3::<f32>::new(-0.01,0.0,0.0),
         aligned);
     let imu2 = Icm20948::new_with_mount(
         RefCellDevice::new(&ch0_bus),0x69,
-        [0.01,0.0,0.0],
+        Vector3::<f32>::new(0.01,0.0,0.0),
         aligned);
 
     let imu3 = Icm20948::new_with_mount(
         RefCellDevice::new(&ch1_bus),0x68,
-        [-0.01,0.0,-0.0115],
+        Vector3::<f32>::new(-0.01,0.0,-0.0115),
         aligned);
     let imu4 = Icm20948::new_with_mount(
         RefCellDevice::new(&ch1_bus),0x69,
-        [0.01,0.0,-0.0115],
+        Vector3::<f32>::new(0.01,0.0,-0.0115),
         aligned);
 
     let imu5 = Icm20948::new_with_mount(
         RefCellDevice::new(&ch2_bus),0x68,
-        [-0.01,0.0,-0.023],
+        Vector3::<f32>::new(-0.01,0.0,-0.023),
         aligned);
     let imu6 = Icm20948::new_with_mount(
         RefCellDevice::new(&ch2_bus),0x69,
-        [0.01,0.0,-0.023],
+        Vector3::<f32>::new(0.01,0.0,-0.023),
         aligned);
 
     let imu7 = Icm20948::new_with_mount(
         RefCellDevice::new(&ch3_bus),0x68,
-        [-0.01,0.0,-0.0345],
+        Vector3::<f32>::new(-0.01,0.0,-0.0345),
         aligned);
     let imu8 = Icm20948::new_with_mount(
         RefCellDevice::new(&ch3_bus),0x69,
-        [0.01,0.0,-0.0345],
+        Vector3::<f32>::new(0.01,0.0,-0.0345),
         aligned);
 
     let imu9 = Icm20948::new_with_mount(
         RefCellDevice::new(&ch4_bus),0x68,
-        [-0.01,0.0,-0.0460],
+        Vector3::<f32>::new(-0.01,0.0,-0.0460),
         aligned);
     let imu10 = Icm20948::new_with_mount(
         RefCellDevice::new(&ch4_bus),0x69,
-        [0.01,0.0,-0.0460],
+        Vector3::<f32>::new(0.01,0.0,-0.0460),
         aligned);
 
     let imu11 = Icm20948::new_with_mount(
         RefCellDevice::new(&ch5_bus),0x68,
-        [0.0,-0.03,0.0],
+        Vector3::<f32>::new(0.0,-0.03,0.0),
         cots_aligned);
     let imu12 = Icm20948::new_with_mount(
         RefCellDevice::new(&ch5_bus),0x69,
-        [0.0,-0.03,-0.0115],
+        Vector3::<f32>::new(0.0,-0.03,-0.0115),
         cots_aligned);
 
 
@@ -155,11 +160,11 @@ fn main() -> ! {
             .expect("failed to set accelerometer range");
         f.sensor(s).set_gyroscope_scale(0)
             .expect("failed to set gyroscope range");
-        f.sensor(s).set_origin_f([0.0, 0.0, 0.01]);
-        f.sensor(s).set_rotation_dcm_s2f([  
-            [1.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0],
-            [0.0, 0.0, 1.0]]);
+        f.sensor(s).set_origin_f(Vector3::<f32>::new(0.0, 0.0, 0.01));
+        f.sensor(s).set_rotation_dcm_s2f(Matrix3::<f32>::new(  
+            1.0, 0.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 0.0, 1.0));
     }
     
     let mut led_buf = smart_led_buffer!(1);
