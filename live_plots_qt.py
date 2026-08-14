@@ -60,7 +60,7 @@ if __name__ == "__main__":
     PORT = find_esp32_port()
     BAUD = 115200
     WINDOW_SIZE = 200
-    N_IMUS = 12
+    N_IMUS = 1
     CHANNELS = ["ax", "ay", "az", "gx", "gy", "gz"]
     COLORS = ["r", "g", "b", "r", "g", "b"]
 

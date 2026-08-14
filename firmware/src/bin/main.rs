@@ -72,11 +72,11 @@ fn main() -> ! {
         0.0, 0.0, 1.0
     );
 
-    let cots_aligned: Matrix3<f32> = Matrix3::new(
-         0.0, -1.0,  0.0,
-        -1.0,  0.0,  0.0,
-         0.0,  0.0, -1.0
-    );
+    // let cots_aligned: Matrix3<f32> = Matrix3::new(
+    //      0.0, -1.0,  0.0,
+    //     -1.0,  0.0,  0.0,
+    //      0.0,  0.0, -1.0
+    // );
 
     // let switch_address = SlaveAddr::Alternative(false,false,false);
     let switch_address = SlaveAddr::default();
@@ -90,7 +90,7 @@ fn main() -> ! {
     let ch2_bus = RefCell::new(parts.i2c2);
     let ch3_bus = RefCell::new(parts.i2c3);
     let ch4_bus = RefCell::new(parts.i2c4);
-    let ch5_bus = RefCell::new(parts.i2c5);
+    // let ch5_bus = RefCell::new(parts.i2c5);
     // let ch6_bus = RefCell::new(parts.i2c6);
     // let ch7_bus = RefCell::new(parts.i2c7);
 
@@ -139,19 +139,19 @@ fn main() -> ! {
         Vector3::<f32>::new(0.01,0.0,-0.0460),
         aligned);
 
-    let imu11 = Icm20948::new_with_mount(
-        RefCellDevice::new(&ch5_bus),0x68,
-        Vector3::<f32>::new(0.0,-0.03,0.0),
-        cots_aligned);
-    let imu12 = Icm20948::new_with_mount(
-        RefCellDevice::new(&ch5_bus),0x69,
-        Vector3::<f32>::new(0.0,-0.03,-0.0115),
-        cots_aligned);
+    // let imu11 = Icm20948::new_with_mount(
+    //     RefCellDevice::new(&ch5_bus),0x68,
+    //     Vector3::<f32>::new(0.0,-0.03,0.0),
+    //     cots_aligned);
+    // let imu12 = Icm20948::new_with_mount(
+    //     RefCellDevice::new(&ch5_bus),0x69,
+    //     Vector3::<f32>::new(0.0,-0.03,-0.0115),
+    //     cots_aligned);
 
 
     let mut f = Filter::new([
         imu1, imu2, imu3, imu4, imu5, imu6, 
-        imu7, imu8, imu9, imu10, imu11, imu12
+        imu7, imu8, imu9, imu10, //imu11, imu12
         ]);
     f.init();
     
@@ -191,8 +191,8 @@ fn main() -> ! {
 
         output.clear();
         write!(output,"{},",timestamp).ok();
-        write!(output,"{}", f.report_raw()).ok();
-        // write!(output,"{}", f.report_virtual_meas()).ok();
+        // write!(output,"{}", f.report_raw()).ok();
+        write!(output,"{}", f.report_virtual_meas()).ok();
         println!("{}",output);
         let tmp = color.r;
         color.r = color.b;

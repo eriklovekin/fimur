@@ -23,13 +23,13 @@ use nalgebra::{
     Vector3,
 };
 
-const N_IMUS: usize = 12; // number of IMUs being used
+const N_IMUS: usize = 10; // number of IMUs being used
 /// two sig figs and a comma
-const F32_SIZE: usize = 12;
+const F32_SIZE: usize = 10;
 /// six floats and six commas for each IMU
 const REPORT_RAW_SIZE: usize = 7*F32_SIZE*N_IMUS; 
 /// three floats for each set of 3DoF (rotational, translational)
-const REPORT_EST_3DOF_SIZE: usize = 40;
+const REPORT_EST_3DOF_SIZE: usize = 120;
 // /// size of report of current estimated pose
 // const REPORT_EST_POSE_SIZE: usize = 2*REPORT_EST_3DOF_SIZE;
 /// size of full report of current estimated state
@@ -42,7 +42,7 @@ pub struct Filter <I2C>{
     last_accel_f_mps2:  [Vector3<f64>;N_IMUS],
     /// All gyroscope measurements transformed into F frame
     last_gyro_f_rps:    [Vector3<f64>;N_IMUS],
-    /// Current estimate of accelerations in F frame [g]
+    /// Current estimate of accelerations in F frame [m/s^2]
     accel_est_f_mps2:   Vector3<f64>, 
     /// Current estimate of angular rates in F frame [deg/s]
     w_est_f_rps:        Vector3<f64>,
@@ -161,8 +161,8 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
     pub fn colocated_coaligned_avg(&mut self) {
         let mut state = [[0.0f64;6];N_IMUS];
         for (i, si) in self.sensors.iter().enumerate() {
-            let a = si.meas().get_accel_s_g();
-            let g = si.meas().get_gyro_s_dps();
+            let a = si.meas().get_accel_s_mps2();
+            let g = si.meas().get_gyro_s_rps();
             for j in 0..3 {
                 state[i][j] = a[j] as f64;
                 state[i][j+3] = g[j] as f64;
@@ -365,8 +365,8 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
     /// Report the last virtual measurement of the filter
     /// accel_x, accel_y, accel_z, gyro_x, gyro_y, gyroz
     /// Ignores errors
-    pub fn report_virtual_meas(&self) -> String<{2*REPORT_EST_3DOF_SIZE}> {
-        let mut s: String<{2*REPORT_EST_3DOF_SIZE}> = String::new();
+    pub fn report_virtual_meas(&self) -> String<{6*REPORT_EST_3DOF_SIZE}> {
+        let mut s: String<{6*REPORT_EST_3DOF_SIZE}> = String::new();
         write!(s,"{}{}",
             self.report_est_accel(),
             self.report_est_w(),

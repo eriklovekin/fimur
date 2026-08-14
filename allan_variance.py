@@ -33,7 +33,8 @@ def compute_allan_variance(dt,x):
 
 if __name__ == "__main__":
     path = "./logs/"
-    timestamp = "20260810-231852/"
+    timestamp = "20260812-234507/"
+    # timestamp = "20260810-231852/"
     # timestamp = "20260809-113733/"
     # timestamp = "20260808-235938/"
     # timestamp = "20260725-233150/"
@@ -42,7 +43,7 @@ if __name__ == "__main__":
     units =  ["m/s2", "rad/s"]
     axis = ["x","y","z"]
     color = ["r","g","b"]
-    N_IMUS = 12
+    N_IMUS = 11
 
     index = pd.MultiIndex.from_product(
     [range(1, N_IMUS+1), ["accel", "gyro"], ["x", "y", "z"]],
