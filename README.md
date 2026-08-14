@@ -58,3 +58,5 @@ Ensure the following libraries are installed using `pip install <library>`
 7 [Gauss Markov Theorem](https://www.statlect.com/fundamentals-of-statistics/Gauss-Markov-theorem)
 
 8 [Sensor Fusion for Distributed Inertial Measurement Units](https://hollydinkel.github.io/assets/pdf/AAS2025.pdf)
+
+9 [Understanding ARW: The Hidden Limit to IMU Accuracy (Part 1)](https://guidenav.com/blog/understanding-arw-the-hidden-limit-to-imu-accuracy-part-1/)

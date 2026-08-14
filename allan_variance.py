@@ -79,7 +79,7 @@ if __name__ == "__main__":
             # dt = (df["t_us"][2] - df["t_us"][1])/1e6
             dt = (df["t_us"].iloc[-1] - df["t_us"].iloc[0]) / (1e6 * (df["t_us"].size - 1))            
             dt_diag = np.diff(df["t_us"])
-            mean_dt = np.mean(dt_diag)
+            mean_dt = np.mean(dt_diag*1e-6)
             std_dt = np.std(dt_diag)
               
             win = pg.GraphicsLayoutWidget(show=True, title=f"Allan Variance - {timestamp}{sensor[j]}{i+1}")
