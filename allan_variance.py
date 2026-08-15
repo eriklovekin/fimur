@@ -31,9 +31,16 @@ def compute_allan_variance(dt,x):
         j+=1
     return tau, avar
 
+bad_lines_log = []
+
+def handle_bad_line(line):
+    bad_lines_log.append(line)
+    return None
+
 if __name__ == "__main__":
     path = "./logs/"
-    timestamp = "20260812-234507/"
+    timestamp = "20260814-002623/"
+    # timestamp = "20260812-234507/"
     # timestamp = "20260810-231852/"
     # timestamp = "20260809-113733/"
     # timestamp = "20260808-235938/"
@@ -63,7 +70,10 @@ if __name__ == "__main__":
         for j in range(len(sensor)):
             full = path+timestamp+sensor[j]+str(i+1)+".csv"
             print(f"loading {full}")
-            df = pd.read_csv(f"{full}")
+            # Load data while collecting the bad rows
+            df = pd.read_csv(f"{full}", on_bad_lines=handle_bad_line, engine='python')
+
+            print("Dropped lines:", bad_lines_log)
 
             z_numeric = pd.to_numeric(df["z"], errors="coerce")
             bad_mask = z_numeric.isna() & df["z"].notna()  # failed to parse, but wasn't already NaN/empty
@@ -75,6 +85,9 @@ if __name__ == "__main__":
                 nan_rows = df[df.isna().any(axis=1)]
                 print(nan_rows.head(20))
                 print(f"first NaN at row: {nan_rows.index.min() if len(nan_rows) else 'none'}")
+
+            print("skipping rows containing NaN")
+            df = df.dropna()
 
             # dt = (df["t_us"][2] - df["t_us"][1])/1e6
             dt = (df["t_us"].iloc[-1] - df["t_us"].iloc[0]) / (1e6 * (df["t_us"].size - 1))            
@@ -151,7 +164,7 @@ if __name__ == "__main__":
     p1.setTitle(f"Loop Time histogram - mean: {mean_dt}, std: {std_dt}")
     # p1.setLabel('left', '', units="s")
     p1.setLabel('bottom', 'Loop time', units="us")
-    y, x = np.histogram(dt_diag, bins=30)
+    y, x = np.histogram(dt_diag, bins=100)
     p1.plot(x, y, stepMode="center", fillLevel=0, brush=(0, 0, 255, 100))
 
     print("Stack stats:")
