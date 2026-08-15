@@ -2,7 +2,6 @@
 #![no_main]
 
 use nalgebra::{
-    Vector3,
     Matrix3, 
     SMatrix, 
     stack,
@@ -41,26 +40,30 @@ impl FusionCore {
     }
 
     pub fn fuse(&self, a: &SMatrix<f64,THREE_N,1>, w: &SMatrix<f64,THREE_N,1>) -> (SMatrix<f64,3,1>, SMatrix<f64,3,1>) {
-        let wv = self.np * *a;
-        let av = self.t * (*a - self.s(w));
+        let wv = self.np * *w;
+        let av = self.t * (*a - self.s(&wv));
         (av,wv)
     }
 
     /// Populate N, p, Np and T fields of struct
     /// n: 3n x 3 matrix stack of DCMs mapping filter frame to Sensor frame of ith sensor (f2s)
     /// p: 3n x 1 matrix stack of position of ith sensor in Filter frame
-    pub fn init_geom(&mut self, n: &SMatrix<f64, THREE_N, 3>, p: &SMatrix<f64,THREE_N,1>) {
-        self.np = self.compute_np(n);
+    pub fn init_geom(&mut self, n: &SMatrix<f64, THREE_N, 3>, p: &SMatrix<f64,THREE_N,1>) -> Result<(),&'static str>{
+        self.p = *p;
+        self.n = *n;
+        self.np = self.compute_np(n)?;
         let y = self.compute_y(n,p);
         let zt = self.compute_zt(&y);
-        debug_assert!((zt * y).norm() < 1e-9, "Z is not orthogonal to Y — null space extraction failed");
-        self.t = self.compute_t(n,&zt);
+        assert!((zt * y).norm() < 1e-9, "Z is not orthogonal to Y — null space extraction failed");
+        self.t = self.compute_t(n,&zt)?;
+        Ok(())
     }
 
-    fn compute_np(&self, n: &SMatrix<f64, THREE_N,3>) -> SMatrix<f64,3, THREE_N> {
+    fn compute_np(&self, n: &SMatrix<f64, THREE_N,3>) -> Result<SMatrix<f64,3, THREE_N>, &'static str> {
         let svd = n.svd(true,true);
         let eps: f64 = 1e-7;
-        svd.pseudo_inverse(eps).unwrap()
+        // svd.pseudo_inverse(eps)?;
+        Ok(svd.pseudo_inverse(eps)?)
     }
 
     fn compute_y(&self,n: &SMatrix<f64, THREE_N,3>, p: &SMatrix<f64,THREE_N,1>) -> SMatrix<f64, THREE_N, 3> {
@@ -88,24 +91,23 @@ impl FusionCore {
         z.transpose()
     }
 
-    fn compute_t(&self, n: &SMatrix<f64, THREE_N,3>, zt: &SMatrix<f64, THREE_N_M3, THREE_N>) -> SMatrix<f64, 3, THREE_N>{
+    fn compute_t(&self, n: &SMatrix<f64, THREE_N,3>, zt: &SMatrix<f64, THREE_N_M3, THREE_N>) -> Result<SMatrix<f64, 3, THREE_N>,&'static str>{
         let prod = zt*n;
         let svd = prod.svd(true,true);
         let eps: f64 = 1e-7;
-        let pseudo_inv = svd.pseudo_inverse(eps).unwrap();
-        pseudo_inv*zt
+        let pseudo_inv = svd.pseudo_inverse(eps)?;
+        Ok(pseudo_inv*zt)
     }
 
-    pub fn s(&self,x: &SMatrix<f64,THREE_N,1>) -> SMatrix<f64,THREE_N,1> {
+    pub fn s(&self,x: &SMatrix<f64,3,1>) -> SMatrix<f64,THREE_N,1> {
         let mut ret: SMatrix<f64,THREE_N,1> = SMatrix::zeros();
         for i in 0..N_IMUS {
-            let xi = x.fixed_view::<3, 1>(i*3, 0).into_owned();
             let ni = self.n.fixed_view::<3, 3>(i*3, 0).into_owned();
             let pi = self.p.fixed_view::<3, 1>(i*3, 0).into_owned();
             let product:SMatrix<f64,3,1> = 
                 ni *
-                xi.cross_matrix() *
-                xi.cross_matrix() *
+                x.cross_matrix() *
+                x.cross_matrix() *
                 pi;
             ret.fixed_view_mut::<3, 1>(i*3, 0).copy_from(&product);        
         }
