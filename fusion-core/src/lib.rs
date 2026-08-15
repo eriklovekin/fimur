@@ -16,15 +16,15 @@ const THREE_P_M3: usize = THREE_N+3;
 
 /// Implementation of [Ref 8](https://hollydinkel.github.io/assets/pdf/AAS2025.pdf)
 pub struct FusionCore {
+    /// p: 3mx1 position vector of Sensor i in Filter frame
+    p: SMatrix<f64,THREE_N,1>,
+    
     /// N: 3mx3 matrix rotating Filter frame 
     /// to Sensor frame i
-    n: [Matrix3<f64>;N_IMUS],
+    n: SMatrix<f64,THREE_N,3>,
 
-    /// p: 3mx1 position vector of Sensor i in Filter frame
-    p: [Vector3<f64>;N_IMUS],
-
-    /// N+: Moore-Penrose inverse of N
-    np: [Matrix3<f64>;N_IMUS],
+    /// N+: 3x3m Moore-Penrose inverse of N
+    np: SMatrix<f64,3, THREE_N>,
 
     /// T: Eliminates Euler acceleration effects
     t: SMatrix<f64,3,THREE_N>,
@@ -33,27 +33,17 @@ pub struct FusionCore {
 impl FusionCore {
     pub fn new() -> Self {
         Self {
-            n: [Matrix3::new(
-                    0.0,0.0,0.0,
-                    0.0,0.0,0.0,
-                    0.0,0.0,0.0);
-                    N_IMUS],
-            p: [Vector3::new(
-                    0.0,0.0,0.0);
-                    N_IMUS],
-            np: [Matrix3::new(
-                    0.0,0.0,0.0,
-                    0.0,0.0,0.0,
-                    0.0,0.0,0.0);
-                    N_IMUS],
+            p: SMatrix::zeros(),
+            n: SMatrix::zeros(),
+            np: SMatrix::zeros(),
             t: SMatrix::zeros(),
-            
         }
     }
 
-    pub fn fuse(&self, a: &[Vector3<f64>;N_IMUS], w: &[Vector3<f64>;N_IMUS]) -> (Vector3<f64>, Vector3<f64>) {
-    // pub fn fuse(&self, a: &SMatrix<f64,THREE_N,1>, w: &SMatrix<f64,THREE_N,1>) -> (SMatrix<f64,THREE_N,1>, SMatrix<f64,THREE_N,1>) {
-        let mut av: Vector3<f64> = self.np * *a;
+    pub fn fuse(&self, a: &SMatrix<f64,THREE_N,1>, w: &SMatrix<f64,THREE_N,1>) -> (SMatrix<f64,3,1>, SMatrix<f64,3,1>) {
+        let wv = self.np * *a;
+        let av = self.t * (*a - self.s(w));
+        (av,wv)
     }
 
     /// Populate N, p, Np and T fields of struct
@@ -67,20 +57,10 @@ impl FusionCore {
         self.t = self.compute_t(n,&zt);
     }
 
-    fn compute_np(&self, n: &SMatrix<f64, THREE_N,3>) -> [Matrix3<f64>;N_IMUS] {
-        let mut ret: [Matrix3<f64>;N_IMUS] = [Matrix3::<f64>::new(
-            0.0,0.0,0.0,
-            0.0,0.0,0.0,
-            0.0,0.0,0.0);
-            N_IMUS];
+    fn compute_np(&self, n: &SMatrix<f64, THREE_N,3>) -> SMatrix<f64,3, THREE_N> {
         let svd = n.svd(true,true);
         let eps: f64 = 1e-7;
-        let np = svd.pseudo_inverse(eps).unwrap();
-        for i in 0..N_IMUS {
-            let block = np.fixed_view::<3, 3>(0, i * 3);
-            ret[i] = block.into_owned();
-        }
-        ret
+        svd.pseudo_inverse(eps).unwrap()
     }
 
     fn compute_y(&self,n: &SMatrix<f64, THREE_N,3>, p: &SMatrix<f64,THREE_N,1>) -> SMatrix<f64, THREE_N, 3> {
@@ -120,11 +100,13 @@ impl FusionCore {
         let mut ret: SMatrix<f64,THREE_N,1> = SMatrix::zeros();
         for i in 0..N_IMUS {
             let xi = x.fixed_view::<3, 1>(i*3, 0).into_owned();
+            let ni = self.n.fixed_view::<3, 3>(i*3, 0).into_owned();
+            let pi = self.p.fixed_view::<3, 1>(i*3, 0).into_owned();
             let product:SMatrix<f64,3,1> = 
-                self.n[i] *
+                ni *
                 xi.cross_matrix() *
                 xi.cross_matrix() *
-                self.p[i];
+                pi;
             ret.fixed_view_mut::<3, 1>(i*3, 0).copy_from(&product);        
         }
         ret
