@@ -5,9 +5,14 @@ use pyo3::prelude::*;
 mod fusion_py {
     use pyo3::prelude::*;
 
-    /// Formats the sum of two numbers as string.
     #[pyfunction]
-    fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-        Ok((a + b).to_string())
+    fn hello_world() {
+        println!("hello world!");
     }
+
+    // Given relative positions of all IMUs in array, compute constant matrices
+
+    // Given constant matrices and most recent sample, compute fused measurement
+
+    // Operator to remove effects of centripetal acceleration
 }
