@@ -8,9 +8,9 @@ use nalgebra::{
 };
 
 const N_IMUS: usize = 12;
-const THREE_N: usize = 3*N_IMUS;
-const THREE_N_M3: usize = THREE_N-3;
-const THREE_P_M3: usize = THREE_N+3;
+pub const THREE_N: usize = 3*N_IMUS;
+pub const THREE_N_M3: usize = THREE_N-3;
+pub const THREE_P_M3: usize = THREE_N+3;
 
 
 /// Implementation of [Ref 8](https://hollydinkel.github.io/assets/pdf/AAS2025.pdf)
@@ -30,28 +30,30 @@ pub struct FusionCore {
 }
 
 impl FusionCore {
-    pub fn fuse(&self, a: &SMatrix<f64,THREE_N,1>, w: &SMatrix<f64,THREE_N,1>) -> (SMatrix<f64,3,1>, SMatrix<f64,3,1>) {
-        let wv = self.np * *w;
-        let av = self.t * (*a - self.s(&wv));
-        (av,wv)
-    }
 
     /// Create new and populate N, p, Np and T fields
     /// n: 3n x 3 matrix stack of DCMs mapping filter frame to Sensor frame of ith sensor (f2s)
     /// p: 3n x 1 matrix stack of position of ith sensor in Filter frame
-    pub fn init_from_geom(&mut self, n: &SMatrix<f64, THREE_N, 3>, p: &SMatrix<f64,THREE_N,1>) -> Result<Self,&'static str>{
-        let y = self.compute_y(n,p);
-        let zt = self.compute_zt(&y);
-        assert!((zt * y).norm() < 1e-9, "Z is not orthogonal to Y — null space extraction failed");
-        
-        Ok(
-            Self {
-            p: *p,
+    pub fn init_from_geom(n: &SMatrix<f64, THREE_N, 3>, p: &SMatrix<f64,THREE_N,1>) -> Result<Self,&'static str>{
+        let mut core = FusionCore {
             n: *n,
-            np: self.compute_np(n)?,
-            t:  self.compute_t(n,&zt)?,
-            }
-        )
+            p: *p,
+            np: SMatrix::zeros(),
+            t: SMatrix::zeros(),
+        };
+        
+        let y = core.compute_y(n,p);
+        let zt = core.compute_zt(&y);
+        assert!((zt * y).norm() < 1e-9, "Z is not orthogonal to Y — null space extraction failed");
+        core.np = core.compute_np(n)?;
+        core.t = core.compute_t(n,&zt)?;
+        Ok(core)
+    }
+
+    pub fn fuse(&self, a: &SMatrix<f64,THREE_N,1>, w: &SMatrix<f64,THREE_N,1>) -> (SMatrix<f64,3,1>, SMatrix<f64,3,1>) {
+        let wv = self.np * *w;
+        let av = self.t * (*a - self.s(&wv));
+        (av,wv)
     }
 
     fn compute_np(&self, n: &SMatrix<f64, THREE_N,3>) -> Result<SMatrix<f64,3, THREE_N>, &'static str> {
@@ -93,7 +95,7 @@ impl FusionCore {
         Ok(pseudo_inv*zt)
     }
 
-    pub fn s(&self,x: &SMatrix<f64,3,1>) -> SMatrix<f64,THREE_N,1> {
+    fn s(&self,x: &SMatrix<f64,3,1>) -> SMatrix<f64,THREE_N,1> {
         let mut ret: SMatrix<f64,THREE_N,1> = SMatrix::zeros();
         for i in 0..N_IMUS {
             let ni = self.n.fixed_view::<3, 3>(i*3, 0).into_owned();
