@@ -7,7 +7,7 @@ use nalgebra::{
     stack,
 };
 
-const N_IMUS: usize = 10;
+const N_IMUS: usize = 3;
 pub const THREE_N: usize = 3*N_IMUS;
 pub const THREE_N_M3: usize = THREE_N-3;
 pub const THREE_P_M3: usize = THREE_N+3;

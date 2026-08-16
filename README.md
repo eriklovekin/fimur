@@ -37,6 +37,7 @@ Ensure the following libraries are installed using `pip install <library>`
 - pyside6
 - allantools
 - PyQt5
+- tqdm
 
 ### PyQt
 - `sudo apt update`
