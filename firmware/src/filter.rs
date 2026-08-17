@@ -23,6 +23,10 @@ use nalgebra::{
     Vector3,
 };
 
+use fusion_core::{
+    FusionCore,
+};
+
 const N_IMUS: usize = 10; // number of IMUs being used
 /// two sig figs and a comma
 const F32_SIZE: usize = 10;
@@ -39,7 +43,7 @@ pub struct Filter <I2C>{
     // dt_us: u32,
     sensors: [Icm20948<I2C>; N_IMUS],
     /// All accelerometer measurements transformed into F frame
-    last_accel_f_mps2:  [Vector3<f64>;N_IMUS],
+    // last_accel_f_mps2:  [Vector3<f64>;N_IMUS],
     /// All gyroscope measurements transformed into F frame
     last_gyro_f_rps:    [Vector3<f64>;N_IMUS],
     /// Current estimate of accelerations in F frame [m/s^2]
@@ -58,7 +62,7 @@ impl<I2C: embedded_hal::i2c::I2c> Filter <I2C>{
         Self {
             // dt_us: dt_us,
             sensors: s,
-            last_accel_f_mps2:  [Vector3::new(0.0,0.0,0.0);N_IMUS],
+            // last_accel_f_mps2:  [Vector3::new(0.0,0.0,0.0);N_IMUS],
             last_gyro_f_rps:    [Vector3::new(0.0,0.0,0.0);N_IMUS],
             accel_est_f_mps2:   Vector3::new(0.0,0.0,0.0),
             w_est_f_rps:        Vector3::new(0.0,0.0,0.0),

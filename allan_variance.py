@@ -37,10 +37,38 @@ def handle_bad_line(line):
     bad_lines_log.append(line)
     return None
 
+def init_allan_variance_plot(title,units,legend):
+    w = pg.GraphicsLayoutWidget(show=True, title=f"{title}")
+    w.resize(1200, 800)
+    p = w.addPlot()
+    p.setTitle(f"{title}")
+    p.setLabel('left', 'Allan Deviation &sigma;(&tau;)', units=f"{units}")
+    p.setLabel('bottom', 'window size &tau;', units='s')
+    a = p.getAxis('left')
+    a.enableAutoSIPrefix(False)
+    a = p.getAxis('bottom')
+    a.enableAutoSIPrefix(False)
+    p.setLogMode(x=True, y=True)
+    p.showGrid(x=True, y=True)
+    if legend:
+        p.addLegend(offset = (-10,10))
+    return w, p, a
+
+def save_plot(path,name,plot):
+    os.makedirs(path, exist_ok=True)
+    exporter = pg.exporters.ImageExporter(plot)
+    exporter.parameters()['width'] = 1920
+    exporter.parameters()['background'] = 'w'
+    print(f"writing to {path}{name}")
+    exporter.export(f"{path}{name}")
+
 if __name__ == "__main__":
+    save_plots=True
+
     path = "./logs/"
-    timestamp = "20260814-002623/"
-    # timestamp = "20260812-234507/"
+    # timestamp = "20260814-002623/"
+    # timestamp = "20260812-234507/virtual/"
+    timestamp = "20260812-234507/"
     # timestamp = "20260810-231852/"
     # timestamp = "20260809-113733/"
     # timestamp = "20260808-235938/"
@@ -50,7 +78,7 @@ if __name__ == "__main__":
     units =  ["m/s2", "rad/s"]
     axis = ["x","y","z"]
     color = ["r","g","b"]
-    N_IMUS = 11
+    N_IMUS = 10
 
     index = pd.MultiIndex.from_product(
     [range(1, N_IMUS+1), ["accel", "gyro"], ["x", "y", "z"]],
@@ -65,6 +93,22 @@ if __name__ == "__main__":
 
     app = QtWidgets.QApplication(sys.argv)
     windows = []
+
+    combined_windows = [] # windows for combined sensors for all data
+    combined_plots = [] # plots for combined sensors for all data
+
+    wax = []# one window for each axis of each sensor type
+    pax = []
+
+    win0a, p0a, _ = init_allan_variance_plot(f"Allan Variance - {timestamp} Accelerometer",units[0],False)
+    combined_windows.append(win0a)
+    combined_plots.append(p0a)
+    windows.append(win0a)
+
+    win0g, p0g, _ = init_allan_variance_plot(f"Allan Variance - {timestamp} Gyroscope",units[1],False)
+    combined_windows.append(win0g)
+    combined_plots.append(p0g)
+    windows.append(win0g)
 
     for i in range(0,N_IMUS):
         for j in range(len(sensor)):
@@ -89,31 +133,24 @@ if __name__ == "__main__":
             print("skipping rows containing NaN")
             df = df.dropna()
 
-            # dt = (df["t_us"][2] - df["t_us"][1])/1e6
-            dt = (df["t_us"].iloc[-1] - df["t_us"].iloc[0]) / (1e6 * (df["t_us"].size - 1))            
             dt_diag = np.diff(df["t_us"])
-            mean_dt = np.mean(dt_diag*1e-6)
-            std_dt = np.std(dt_diag)
-              
-            win = pg.GraphicsLayoutWidget(show=True, title=f"Allan Variance - {timestamp}{sensor[j]}{i+1}")
-            win.resize(1200, 800)
-            p = win.addPlot()
-            p.setTitle(f"{timestamp}{sensor[j]}{i+1}")
-            p.setLabel('left', 'Allan Deviation &sigma;(&tau;)', units=f"{units[j]}")
-            p.setLabel('bottom', 'window size &tau;', units='s')
-            ax = p.getAxis('left')
-            ax.enableAutoSIPrefix(False)
-            ax = p.getAxis('bottom')
-            ax.enableAutoSIPrefix(False)
-            p.addLegend(offset = (-10,10))
-            p.setLogMode(x=True, y=True)
-            p.showGrid(x=True, y=True)
+            mean_dt_s = np.mean(dt_diag*1e-6)
+            std_dt_s = np.std(dt_diag*1e-6)
+
+            win, p, _ = init_allan_variance_plot(f"Allan Variance - {timestamp}{sensor[j]}{i+1}",units[j],True)
             
             for a in range(len(axis)):
+                #create per-axis combined plots
+                if i == 0:
+                    winaxis, paxis, _ = init_allan_variance_plot(f"Allan Variance - {timestamp} {sensor[j]} {axis[a]}",units[j],False)
+                    wax.append(winaxis)
+                    pax.append(paxis)
+                    windows.append(winaxis)
+
                 raw = df[axis[a]].to_numpy()
 
                 tau, adev, adev_err, n = allantools.oadev(
-                    raw, rate=1/mean_dt, data_type="freq", taus="octave"
+                    raw, rate=1/mean_dt_s, data_type="freq", taus="octave"
                 )
 
                 # print(f"{axis[a]}-axis...")
@@ -133,6 +170,8 @@ if __name__ == "__main__":
                       f"time constant: {t:.4f}")
 
                 p.plot(tau,adev,pen=f"{color[a]}", name=f"{axis[a]}")
+                pax[a+3*j].plot(tau,adev,pen=f"{color[a]}", name=f"{axis[a]}")
+                combined_plots[j].plot(tau,adev,pen=f"{color[a]}", name=f"{axis[a]}")
                 # err_item = pg.ErrorBarItem(
                 #     x=np.log10(tau_x),
                 #     y=np.log10(adev_x),
@@ -148,24 +187,40 @@ if __name__ == "__main__":
             for _ in range(10):
                 app.processEvents()
 
-            expath = f"./assets/img/allan/{timestamp}"
-            exname = f"{expath}allan_{sensor[j]}{i+1}.png"
-
-            # os.makedirs(expath, exist_ok=True)
-            # exporter = pg.exporters.ImageExporter(p)
-            # exporter.parameters()['width'] = 1920
-            # exporter.parameters()['background'] = 'w'
-            # print(f"writing to {exname}")
-            # exporter.export(f"{exname}")
+            if save_plots:
+                expath = f"./assets/img/allan/{timestamp}"
+                exname = f"allan_{sensor[j]}{i+1}.png"
+                save_plot(expath,exname,p)
 
     w = pg.GraphicsLayoutWidget(show=True, title=f"Loop Time histogram - {timestamp}{sensor[j]}{i+1}")
     w.resize(1200, 800)
     p1 = w.addPlot()
-    p1.setTitle(f"Loop Time histogram - mean: {mean_dt}, std: {std_dt}")
+    p1.setTitle(f"Loop Time histogram - mean: {mean_dt_s*1e3}ms, std: {std_dt_s*1e3}ms")
     # p1.setLabel('left', '', units="s")
     p1.setLabel('bottom', 'Loop time', units="us")
-    y, x = np.histogram(dt_diag, bins=100)
+    y, x = np.histogram(dt_diag, bins=50)
     p1.plot(x, y, stepMode="center", fillLevel=0, brush=(0, 0, 255, 100))
+    if save_plots:
+        expath = f"./assets/img/allan/{timestamp}"
+        exname = f"dt_histogram_{sensor[j]}{i+1}.png"
+        save_plot(expath,exname,p1)
+
+    for w in combined_windows:
+        w.show()
+        w.raise_()
+
+    for w in wax:
+        w.show()
+        w.raise_()
+    for j in range(len(sensor)):
+        path = f"./assets/img/allan/{timestamp}"
+        name = f"Allan Variance {sensor[j]} all.png"   
+        save_plot(path,name,combined_plots[j])
+        
+        for a in range(len(axis)):
+            path = f"./assets/img/allan/{timestamp}"
+            name = f"Allan Variance {sensor[j]} {axis[a]}.png"   
+            save_plot(path,name,pax[a+3*j])
 
     print("Stack stats:")
     for j in range(len(sensor)):

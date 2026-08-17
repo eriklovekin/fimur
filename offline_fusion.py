@@ -89,7 +89,7 @@ if __name__ == "__main__":
     log_path = "./logs/"
     # timestamp = "test2/"
     # timestamp = "20260814-002623/"
-    timestamp = "20260812-234507/"
+    timestamp = "20260812-234507/" # clean data, ~7hours log
     # timestamp = "20260810-231852/"
     # timestamp = "20260809-113733/"
     # timestamp = "20260808-235938/"
@@ -100,8 +100,8 @@ if __name__ == "__main__":
     config_name = "imu"
 
     # which sensors to use in fusion
-    sensor_idx = ["1","2","3"]#,"4","5",
-                  #"6","7","8","9","10"]
+    sensor_idx = ["1","2","3","4","5",
+                  "6","7","8","9","10"]
 
     # get relative poses of all sensors from their config
     sensor_name = []
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     wfiles = {}
     writers  = {}
     for s in sensor:
-        wfile = Path(f"{log_path}{timestamp}/virtual-{s}.csv")
+        wfile = Path(f"{log_path}{timestamp}/virtual/{s}1.csv")
         wfile.parent.mkdir(parents=True,exist_ok=True)
 
         wf = wfile.open("w", newline="")
