@@ -13,7 +13,3 @@ py-build:
 clean:
     cargo clean
     cd fusion-py && cargo clean
-
-venv:
-    source ./.venv/bin/activate
-
