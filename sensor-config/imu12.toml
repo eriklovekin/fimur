@@ -1,0 +1,17 @@
+[communication]
+multiplexer_addr = "Default"
+multiplexer_bus = "i2c5"
+sensor_addr = 0x69
+
+[accelerometer]
+scale = 0
+
+[gyroscope]
+scale = 0
+
+[pose]
+s2f = [
+    [ 0.0, -1.0,  0.0],
+    [-1.0,  0.0,  0.0],
+    [ 0.0,  0.0, -1.0]]
+origin_f = [0.0,-0.03,-0.0115]

@@ -686,6 +686,7 @@ dependencies = [
  "esp-hal",
  "esp-hal-smartled",
  "esp-println",
+ "fusion-core",
  "heapless 0.9.3",
  "icm20948",
  "imu-traits",
@@ -709,6 +710,13 @@ checksum = "4e639847d312d9a82d2e75b0edcc1e934efcc64e6cb7aa94f0b1fbec0bc231d6"
 dependencies = [
  "defmt 0.3.100",
  "gcd",
+]
+
+[[package]]
+name = "fusion-core"
+version = "0.1.0"
+dependencies = [
+ "nalgebra",
 ]
 
 [[package]]
@@ -955,11 +963,23 @@ dependencies = [
  "glam 0.31.1",
  "glam 0.32.1",
  "glam 0.33.3",
+ "nalgebra-macros",
  "num-complex",
  "num-rational",
  "num-traits",
  "simba",
  "typenum",
+]
+
+[[package]]
+name = "nalgebra-macros"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "973e7178a678cfd059ccec50887658d482ce16b0aa9da3888ddeab5cd5eb4889"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

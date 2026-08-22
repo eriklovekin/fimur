@@ -1,10 +1,12 @@
 [workspace]
 members = [
-    "firmware",
+    "firmware", 
+    "fusion-core", 
     "icm20948", 
     "imu-traits",
 ]
 resolver = "3"
+exclude = ["fusion-py"]
 
 [profile.dev]
 # Rust debug is too slow.

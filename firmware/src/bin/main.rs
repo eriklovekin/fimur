@@ -148,7 +148,6 @@ fn main() -> ! {
     //     Vector3::<f32>::new(0.0,-0.03,-0.0115),
     //     cots_aligned);
 
-
     let mut f = Filter::new([
         imu1, imu2, imu3, imu4, imu5, imu6, 
         imu7, imu8, imu9, imu10, //imu11, imu12
