@@ -8,6 +8,9 @@ import os
 import signal
 import allantools
 
+pg.setConfigOption('foreground', 'k')
+pg.setConfigOption('background', 'w')
+
 def compute_allan_variance(dt,x):
     N = len(x)
     avar = []
@@ -51,7 +54,7 @@ def init_allan_variance_plot(title,units,legend):
     p.setLogMode(x=True, y=True)
     p.showGrid(x=True, y=True)
     if legend:
-        p.addLegend(offset = (-10,10))
+        p.addLegend(offset = (-10,10),labelTextSize='18pt')
     return w, p, a
 
 def save_plot(path,name,plot):
@@ -67,8 +70,8 @@ if __name__ == "__main__":
 
     path = "./logs/"
     # timestamp = "20260814-002623/"
-    # timestamp = "20260812-234507/virtual/"
-    timestamp = "20260812-234507/"
+    timestamp = "20260812-234507/virtual/"
+    # timestamp = "20260812-234507/"
     # timestamp = "20260810-231852/"
     # timestamp = "20260809-113733/"
     # timestamp = "20260808-235938/"
@@ -78,10 +81,14 @@ if __name__ == "__main__":
     units =  ["m/s2", "rad/s"]
     axis = ["x","y","z"]
     color = ["r","g","b"]
-    N_IMUS = 10
+    color2 = [0.0,0.3,0.6]
+    # which sensors to plot
+    # For raw data, this specifies the index of the sensor
+    # for virtual data, this specifies the number of sensors fused
+    sensor_idx = ["1","2","4","6","8","10"]
 
     index = pd.MultiIndex.from_product(
-    [range(1, N_IMUS+1), ["accel", "gyro"], ["x", "y", "z"]],
+    [range(1, len(sensor_idx)), ["accel", "gyro"], ["x", "y", "z"]],
     names=["imu", "sensor", "axis"]
     )
     superDf = pd.DataFrame(index=index, columns=["tau", "B"], dtype=float)
@@ -100,19 +107,21 @@ if __name__ == "__main__":
     wax = []# one window for each axis of each sensor type
     pax = []
 
-    win0a, p0a, _ = init_allan_variance_plot(f"Allan Variance - {timestamp} Accelerometer",units[0],False)
+    win0a, p0a, _ = init_allan_variance_plot(f"Allan Variance - {timestamp} Accelerometer",units[0],True)
     combined_windows.append(win0a)
     combined_plots.append(p0a)
     windows.append(win0a)
 
-    win0g, p0g, _ = init_allan_variance_plot(f"Allan Variance - {timestamp} Gyroscope",units[1],False)
+    win0g, p0g, _ = init_allan_variance_plot(f"Allan Variance - {timestamp} Gyroscope",units[1],True)
     combined_windows.append(win0g)
     combined_plots.append(p0g)
     windows.append(win0g)
 
-    for i in range(0,N_IMUS):
+    for i in range(len(sensor_idx)):
+        brightness = 0.4 + 0.6 * (i / max(len(sensor_idx) - 1, 1))
+
         for j in range(len(sensor)):
-            full = path+timestamp+sensor[j]+str(i+1)+".csv"
+            full = path+timestamp+sensor[j]+sensor_idx[i]+".csv"
             print(f"loading {full}")
             # Load data while collecting the bad rows
             df = pd.read_csv(f"{full}", on_bad_lines=handle_bad_line, engine='python')
@@ -137,12 +146,12 @@ if __name__ == "__main__":
             mean_dt_s = np.mean(dt_diag*1e-6)
             std_dt_s = np.std(dt_diag*1e-6)
 
-            win, p, _ = init_allan_variance_plot(f"Allan Variance - {timestamp}{sensor[j]}{i+1}",units[j],True)
+            win, p, _ = init_allan_variance_plot(f"Allan Variance - {timestamp}{sensor[j]}{sensor_idx[i]}",units[j],True)
             
             for a in range(len(axis)):
                 #create per-axis combined plots
                 if i == 0:
-                    winaxis, paxis, _ = init_allan_variance_plot(f"Allan Variance - {timestamp} {sensor[j]} {axis[a]}",units[j],False)
+                    winaxis, paxis, _ = init_allan_variance_plot(f"Allan Variance - {timestamp} {sensor[j]} {axis[a]}",units[j],True)
                     wax.append(winaxis)
                     pax.append(paxis)
                     windows.append(winaxis)
@@ -162,16 +171,17 @@ if __name__ == "__main__":
                 idx = np.argmin(np.abs(adev - min_adev))
                 t = tau[idx]
                 B = C*min_adev
-                superDf.loc[(i+1,f"{sensor[j]}",f"{axis[a]}"),"tau"] = t
-                superDf.loc[(i+1,f"{sensor[j]}",f"{axis[a]}"),"B"] = B
+                superDf.loc[(f"{sensor_idx[i]}",f"{sensor[j]}",f"{axis[a]}"),"tau"] = t
+                superDf.loc[(f"{sensor_idx[i]}",f"{sensor[j]}",f"{axis[a]}"),"B"] = B
 
                 print(f"{axis[a]}:\nmin adev [{units[j]}]: {min_adev:.4f}, " \
                       f"bias instability [{units[j]}]: {B:.4f}, " \
                       f"time constant: {t:.4f}")
 
-                p.plot(tau,adev,pen=f"{color[a]}", name=f"{axis[a]}")
-                pax[a+3*j].plot(tau,adev,pen=f"{color[a]}", name=f"{axis[a]}")
-                combined_plots[j].plot(tau,adev,pen=f"{color[a]}", name=f"{axis[a]}")
+                p.plot(tau,adev,pen=pg.mkPen(pg.hsvColor(hue=color2[a]),width=3),sat=1.0, name=f"{axis[a]}")
+                pax[a+3*j].plot(tau,adev,pen=pg.mkPen(pg.hsvColor(hue=color2[a], sat=1.0, val=brightness),width=3), name=f"{sensor_idx[i]}")
+                # combined_plots[j].plot(tau,adev,pen=f"{color[a]}", name=f"{axis[a]}")
+                combined_plots[j].plot(tau,adev,pen=f"{color[a]}", name=f"{sensor_idx[i]}")
                 # err_item = pg.ErrorBarItem(
                 #     x=np.log10(tau_x),
                 #     y=np.log10(adev_x),
@@ -189,10 +199,10 @@ if __name__ == "__main__":
 
             if save_plots:
                 expath = f"./assets/img/allan/{timestamp}"
-                exname = f"allan_{sensor[j]}{i+1}.png"
+                exname = f"allan_{sensor[j]}{sensor_idx[i]}.png"
                 save_plot(expath,exname,p)
 
-    w = pg.GraphicsLayoutWidget(show=True, title=f"Loop Time histogram - {timestamp}{sensor[j]}{i+1}")
+    w = pg.GraphicsLayoutWidget(show=True, title=f"Loop Time histogram - {timestamp}{sensor[j]}{sensor_idx[i]}")
     w.resize(1200, 800)
     p1 = w.addPlot()
     p1.setTitle(f"Loop Time histogram - mean: {mean_dt_s*1e3}ms, std: {std_dt_s*1e3}ms")
@@ -202,7 +212,7 @@ if __name__ == "__main__":
     p1.plot(x, y, stepMode="center", fillLevel=0, brush=(0, 0, 255, 100))
     if save_plots:
         expath = f"./assets/img/allan/{timestamp}"
-        exname = f"dt_histogram_{sensor[j]}{i+1}.png"
+        exname = f"dt_histogram_{sensor[j]}{sensor_idx[i]}.png"
         save_plot(expath,exname,p1)
 
     for w in combined_windows:
@@ -256,4 +266,3 @@ if __name__ == "__main__":
         app.quit()
 
     # print(f"Mean dt [us]: {mean_dt_us}, std: {std_dt_us}")
-
