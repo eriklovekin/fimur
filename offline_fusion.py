@@ -122,7 +122,7 @@ if __name__ == "__main__":
     wfiles = {}
     writers  = {}
     for s in sensor:
-        wfile = Path(f"{log_path}{timestamp}/virtual/{s}1.csv")
+        wfile = Path(f"{log_path}{timestamp}/virtual/{s}{len(sensor_idx)}.csv")
         wfile.parent.mkdir(parents=True,exist_ok=True)
 
         wf = wfile.open("w", newline="")

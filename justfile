@@ -2,12 +2,12 @@
 default:
     @just --list
 
-all: build py-build
+all: build pybuild
 
 build:
     cargo build -p fimur -p icm20948 -p imu-traits --target riscv32imac-unknown-none-elf
 
-py-build:
+pybuild:
     cd fusion-py && maturin develop
 
 clean:
