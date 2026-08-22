@@ -24,7 +24,10 @@ use esp_hal_smartled::{SmartLedsAdapter, smart_led_buffer};
 use smart_leds::{RGB8, SmartLedsWrite as _};
 use {esp_backtrace as _, esp_println as _};
 
-use esp_hal::i2c::master::{I2c, Config};
+use esp_hal::i2c::master::{
+    I2c, 
+    Config,
+};
 
 use icm20948::Icm20948;
 use imu_traits::{Imu, ImuWithAdustableScale};
@@ -37,7 +40,9 @@ use nalgebra::{
     Vector3,
 };
 
-use xca9548a::{Xca9548a, SlaveAddr};
+use xca9548a::{
+    Xca9548a, 
+    SlaveAddr};
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
 esp_bootloader_esp_idf::esp_app_desc!();
@@ -51,14 +56,13 @@ fn main() -> ! {
     info!("startup");
 
     let mut timestamp: u64 = 0;
-    // let loop_duration_us: u32 = 200; 
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let _peripherals = esp_hal::init(config);
     let rmt = Rmt::new(
         _peripherals.RMT, Rate::from_mhz(80)).unwrap();
 
-    let i2c_config = Config::default();
+    let i2c_config = Config::default().with_frequency(Rate::from_khz(400));
     let i2c = I2c::new(_peripherals.I2C0, i2c_config)
         .expect("Failed to initialize i2c")
         .with_sda(_peripherals.GPIO2)

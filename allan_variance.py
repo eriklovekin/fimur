@@ -69,8 +69,9 @@ if __name__ == "__main__":
     save_plots=True
 
     path = "./logs/"
+    timestamp = "20260821-233049/"
     # timestamp = "20260814-002623/"
-    timestamp = "20260812-234507/virtual/"
+    # timestamp = "20260812-234507/virtual/"
     # timestamp = "20260812-234507/"
     # timestamp = "20260810-231852/"
     # timestamp = "20260809-113733/"
@@ -202,18 +203,19 @@ if __name__ == "__main__":
                 exname = f"allan_{sensor[j]}{sensor_idx[i]}.png"
                 save_plot(expath,exname,p)
 
-    w = pg.GraphicsLayoutWidget(show=True, title=f"Loop Time histogram - {timestamp}{sensor[j]}{sensor_idx[i]}")
-    w.resize(1200, 800)
-    p1 = w.addPlot()
-    p1.setTitle(f"Loop Time histogram - mean: {mean_dt_s*1e3}ms, std: {std_dt_s*1e3}ms")
-    # p1.setLabel('left', '', units="s")
-    p1.setLabel('bottom', 'Loop time', units="us")
+    w_hist = pg.GraphicsLayoutWidget(show=True, title=f"Loop Time histogram - {timestamp}{sensor[j]}{sensor_idx[i]}")
+    w_hist.resize(1200, 800)
+    p_hist = w_hist.addPlot()
+    p_hist.setTitle(f"Loop Time histogram - mean: {mean_dt_s*1e3}ms, std: {std_dt_s*1e3}ms")
+    p_hist.setLabel('bottom', 'Loop time', units="us")
     y, x = np.histogram(dt_diag, bins=50)
-    p1.plot(x, y, stepMode="center", fillLevel=0, brush=(0, 0, 255, 100))
+    p_hist.plot(x, y, stepMode="center", fillLevel=0, brush=(0, 0, 255, 100))
+    w_hist.show()
+
     if save_plots:
         expath = f"./assets/img/allan/{timestamp}"
         exname = f"dt_histogram_{sensor[j]}{sensor_idx[i]}.png"
-        save_plot(expath,exname,p1)
+        save_plot(expath,exname,p_hist)
 
     for w in combined_windows:
         w.show()
