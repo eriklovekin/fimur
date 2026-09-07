@@ -69,9 +69,10 @@ if __name__ == "__main__":
     save_plots=True
 
     path = "./logs/"
-    timestamp = "20260821-233049/"
+    # timestamp = "20260821-233049/"
     # timestamp = "20260814-002623/"
     # timestamp = "20260812-234507/virtual/"
+    timestamp = "20260814-002623/"
     # timestamp = "20260812-234507/"
     # timestamp = "20260810-231852/"
     # timestamp = "20260809-113733/"
@@ -83,6 +84,7 @@ if __name__ == "__main__":
     axis = ["x","y","z"]
     color = ["r","g","b"]
     color2 = [0.0,0.3,0.6]
+    color3 = [0.1,0.2,0.4,0.5,0.6,0.8]
     # which sensors to plot
     # For raw data, this specifies the index of the sensor
     # for virtual data, this specifies the number of sensors fused
@@ -119,7 +121,7 @@ if __name__ == "__main__":
     windows.append(win0g)
 
     for i in range(len(sensor_idx)):
-        brightness = 0.4 + 0.6 * (i / max(len(sensor_idx) - 1, 1))
+        brightness = 0.0 + 1.0 * (i / max(len(sensor_idx) - 1, 1))
 
         for j in range(len(sensor)):
             full = path+timestamp+sensor[j]+sensor_idx[i]+".csv"
@@ -180,7 +182,7 @@ if __name__ == "__main__":
                       f"time constant: {t:.4f}")
 
                 p.plot(tau,adev,pen=pg.mkPen(pg.hsvColor(hue=color2[a]),width=3),sat=1.0, name=f"{axis[a]}")
-                pax[a+3*j].plot(tau,adev,pen=pg.mkPen(pg.hsvColor(hue=color2[a], sat=1.0, val=brightness),width=3), name=f"{sensor_idx[i]}")
+                pax[a+3*j].plot(tau,adev,pen=pg.mkPen(pg.hsvColor(hue=color3[i], sat=1.0),width=3), name=f"{sensor_idx[i]}")
                 # combined_plots[j].plot(tau,adev,pen=f"{color[a]}", name=f"{axis[a]}")
                 combined_plots[j].plot(tau,adev,pen=f"{color[a]}", name=f"{sensor_idx[i]}")
                 # err_item = pg.ErrorBarItem(
