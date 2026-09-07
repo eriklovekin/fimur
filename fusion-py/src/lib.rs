@@ -3,7 +3,7 @@ use pyo3::prelude::*;
 #[pymodule]
 mod fusion_py {
     use pyo3::prelude::*;
-    use fusion_core::{
+    use fusion_core::fusion::{
         FusionCore,
         THREE_N,
     };
