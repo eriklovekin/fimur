@@ -51,6 +51,7 @@ esp_bootloader_esp_idf::esp_app_desc!();
     clippy::large_stack_frames,
     reason = "it's not unusual to allocate larger buffers etc. in main"
 )]
+
 #[main]
 fn main() -> ! {
     info!("startup");

@@ -3,11 +3,38 @@
 
 use nalgebra::{
     Matrix3, 
+    Vector3,
     SMatrix, 
     stack,
 };
 
-const N_IMUS: usize = 10;
+struct ImuComConfig {
+    multiplexer_addr: (bool,bool,bool),
+    multiplexer_bus: u8,
+    sensor_addr: u8,
+}
+
+struct ImuAccelConfig {
+    scale: u8,
+}
+
+struct ImuGyroConfig {
+    scale: u8,
+}
+struct ImuPoseConfig {
+    s2f: Matrix3<f32>,
+    origin_f: Vector3::<f32>,
+}
+
+struct ImuConfig {
+    communication:  ImuComConfig,
+    accelerometer:  ImuAccelConfig,
+    gyroscope:      ImuGyroConfig,
+    pose:           ImuPoseConfig,
+}
+
+include!(concat!(env!("OUT_DIR"), "/sensor_configs.rs"));
+
 pub const THREE_N: usize = 3*N_IMUS;
 pub const THREE_N_M3: usize = THREE_N-3;
 pub const THREE_P_M3: usize = THREE_N+3;

@@ -1,0 +1,15 @@
+# Defines the IMUs to use in the filter. 
+# This is used at compile time.
+
+sensors = [ 
+    "imu1",
+    "imu2",
+    "imu3",
+    "imu4",
+    "imu5",
+    "imu6",
+    "imu7",
+    "imu8",
+    "imu9",
+    "imu10",
+]
