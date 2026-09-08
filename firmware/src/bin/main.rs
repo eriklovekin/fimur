@@ -42,7 +42,14 @@ use nalgebra::{
 
 use xca9548a::{
     Xca9548a, 
-    SlaveAddr};
+    SlaveAddr
+};
+
+use fusion_core::config::{
+    N_IMUS,
+    IMU_CONFIGS,
+};
+
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
 esp_bootloader_esp_idf::esp_app_desc!();
