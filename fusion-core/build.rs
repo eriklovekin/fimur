@@ -2,11 +2,6 @@ use serde::{
     Deserialize,
 };
 
-use nalgebra::{
-    Matrix3, 
-    Vector3,
-};
-
 use std::fs;
 use std::env;
 use std::path::Path;

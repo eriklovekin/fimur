@@ -102,9 +102,32 @@ fn main() -> ! {
     let ch2_bus = RefCell::new(parts.i2c2);
     let ch3_bus = RefCell::new(parts.i2c3);
     let ch4_bus = RefCell::new(parts.i2c4);
-    // let ch5_bus = RefCell::new(parts.i2c5);
-    // let ch6_bus = RefCell::new(parts.i2c6);
-    // let ch7_bus = RefCell::new(parts.i2c7);
+    let ch5_bus = RefCell::new(parts.i2c5);
+    let ch6_bus = RefCell::new(parts.i2c6);
+    let ch7_bus = RefCell::new(parts.i2c7);
+
+
+    let sensors: [Icm20948<_>; N_IMUS] = core::array::from_fn(|i| {
+        let cfg = &IMU_CONFIGS[i];
+        let b = cfg.communication.multiplexer_bus;
+        let bus = match cfg.communication.multiplexer_bus {
+        0 => &ch0_bus,
+        1 => &ch1_bus,
+        2 => &ch2_bus,
+        3 => &ch3_bus,
+        4 => &ch4_bus,
+        5 => &ch5_bus,
+        6 => &ch6_bus,
+        7 => &ch7_bus,
+        _ => panic!("unsupported mux channel: {b}")
+        };
+        Icm20948::new_with_mount(
+            RefCellDevice::new(bus),
+            cfg.communication.sensor_addr,
+            cfg.pose.origin_f,
+            cfg.pose.s2f,
+        )
+    });
 
     let imu1 = Icm20948::new_with_mount(
         RefCellDevice::new(&ch0_bus),0x68,
@@ -160,11 +183,9 @@ fn main() -> ! {
     //     Vector3::<f32>::new(0.0,-0.03,-0.0115),
     //     cots_aligned);
 
-    let mut f = Filter::new([
-        imu1, imu2, imu3, imu4, imu5, imu6, 
-        imu7, imu8, imu9, imu10, //imu11, imu12
-        ]);
-    f.init();
+    let mut f = Filter::new(
+        sensors
+    );
     
     for s in 0..f.get_n_sensors() {
         f.sensor(s).set_accelerometer_scale(0)

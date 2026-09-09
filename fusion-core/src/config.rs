@@ -4,28 +4,28 @@ use nalgebra::{
 };
 
 pub struct ImuComConfig {
-    multiplexer_addr: (bool,bool,bool),
-    multiplexer_bus: u8,
-    sensor_addr: u8,
+    pub multiplexer_addr: (bool,bool,bool),
+    pub multiplexer_bus: u8,
+    pub sensor_addr: u8,
 }
 
 pub struct ImuAccelConfig {
-    scale: u8,
+    pub scale: u8,
 }
 
 pub struct ImuGyroConfig {
-    scale: u8,
+    pub scale: u8,
 }
 pub struct ImuPoseConfig {
-    s2f: Matrix3<f32>,
-    origin_f: Vector3::<f32>,
+    pub s2f: Matrix3<f32>,
+    pub origin_f: Vector3::<f32>,
 }
 
 pub struct ImuConfig {
-    communication:  ImuComConfig,
-    accelerometer:  ImuAccelConfig,
-    gyroscope:      ImuGyroConfig,
-    pose:           ImuPoseConfig,
+    pub communication:  ImuComConfig,
+    pub accelerometer:  ImuAccelConfig,
+    pub gyroscope:      ImuGyroConfig,
+    pub pose:           ImuPoseConfig,
 }
 
 include!(concat!(env!("OUT_DIR"), "/sensor_configs.rs"));
