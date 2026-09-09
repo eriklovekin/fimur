@@ -49,6 +49,11 @@ IMU configurations are defined individually in TOML files in the `sensor-config/
 - Adressing
 - Sensor settings
 - Pose
+manifest.toml defines which imus are used in the build and the size of the list sets the value of N_IMUS, used both online and offline.
+
+The config files are ingested at build time in the fusion-core build.rs. Structs that are ultimately generated from these configs are defined in the fusion-core config module. 
+The configs are ingested at build time to allow the use of an std toml parser which makes everything easier. This autogenerates a rust source file that explicitly defines the sensor structs from the configs and is then included in the fusion-core config module.
+The current implementation assumes a single multiplexer is in use and explicitly instantiates each of the buses on that multiplexer. Future work will allow an arbitrary set of multiplexers/buses to be used, but is too much of a rabit hole for now...
 
 ## Dependencies
 

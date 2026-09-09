@@ -106,7 +106,6 @@ fn main() -> ! {
     let ch6_bus = RefCell::new(parts.i2c6);
     let ch7_bus = RefCell::new(parts.i2c7);
 
-
     let sensors: [Icm20948<_>; N_IMUS] = core::array::from_fn(|i| {
         let cfg = &IMU_CONFIGS[i];
         let b = cfg.communication.multiplexer_bus;
@@ -128,60 +127,6 @@ fn main() -> ! {
             cfg.pose.s2f,
         )
     });
-
-    let imu1 = Icm20948::new_with_mount(
-        RefCellDevice::new(&ch0_bus),0x68,
-        Vector3::<f32>::new(-0.01,0.0,0.0),
-        aligned);
-    let imu2 = Icm20948::new_with_mount(
-        RefCellDevice::new(&ch0_bus),0x69,
-        Vector3::<f32>::new(0.01,0.0,0.0),
-        aligned);
-
-    let imu3 = Icm20948::new_with_mount(
-        RefCellDevice::new(&ch1_bus),0x68,
-        Vector3::<f32>::new(-0.01,0.0,-0.0115),
-        aligned);
-    let imu4 = Icm20948::new_with_mount(
-        RefCellDevice::new(&ch1_bus),0x69,
-        Vector3::<f32>::new(0.01,0.0,-0.0115),
-        aligned);
-
-    let imu5 = Icm20948::new_with_mount(
-        RefCellDevice::new(&ch2_bus),0x68,
-        Vector3::<f32>::new(-0.01,0.0,-0.023),
-        aligned);
-    let imu6 = Icm20948::new_with_mount(
-        RefCellDevice::new(&ch2_bus),0x69,
-        Vector3::<f32>::new(0.01,0.0,-0.023),
-        aligned);
-
-    let imu7 = Icm20948::new_with_mount(
-        RefCellDevice::new(&ch3_bus),0x68,
-        Vector3::<f32>::new(-0.01,0.0,-0.0345),
-        aligned);
-    let imu8 = Icm20948::new_with_mount(
-        RefCellDevice::new(&ch3_bus),0x69,
-        Vector3::<f32>::new(0.01,0.0,-0.0345),
-        aligned);
-
-    let imu9 = Icm20948::new_with_mount(
-        RefCellDevice::new(&ch4_bus),0x68,
-        Vector3::<f32>::new(-0.01,0.0,-0.0460),
-        aligned);
-    let imu10 = Icm20948::new_with_mount(
-        RefCellDevice::new(&ch4_bus),0x69,
-        Vector3::<f32>::new(0.01,0.0,-0.0460),
-        aligned);
-
-    // let imu11 = Icm20948::new_with_mount(
-    //     RefCellDevice::new(&ch5_bus),0x68,
-    //     Vector3::<f32>::new(0.0,-0.03,0.0),
-    //     cots_aligned);
-    // let imu12 = Icm20948::new_with_mount(
-    //     RefCellDevice::new(&ch5_bus),0x69,
-    //     Vector3::<f32>::new(0.0,-0.03,-0.0115),
-    //     cots_aligned);
 
     let mut f = Filter::new(
         sensors
