@@ -30,14 +30,11 @@ use esp_hal::i2c::master::{
 };
 
 use icm20948::Icm20948;
-use imu_traits::{Imu, ImuWithAdustableScale};
+use imu_traits::{
+    ImuWithAdustableScale
+};
 use fimur::filter::{
     Filter,
-};
-
-use nalgebra::{
-    Matrix3, 
-    Vector3,
 };
 
 use xca9548a::{
@@ -78,19 +75,6 @@ fn main() -> ! {
     // RefCell needed so multiple multiplexers or I2C devices can share the same bus
     let i2c_bus = RefCell::new(i2c);
 
-    let aligned: Matrix3<f32> = Matrix3::new(
-        1.0, 0.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 0.0, 1.0
-    );
-
-    // let cots_aligned: Matrix3<f32> = Matrix3::new(
-    //      0.0, -1.0,  0.0,
-    //     -1.0,  0.0,  0.0,
-    //      0.0,  0.0, -1.0
-    // );
-
-    // let switch_address = SlaveAddr::Alternative(false,false,false);
     let switch_address = SlaveAddr::default();
     let i2c_switch = Xca9548a::new(
         RefCellDevice::new(&i2c_bus), switch_address);
@@ -108,8 +92,8 @@ fn main() -> ! {
 
     let sensors: [Icm20948<_>; N_IMUS] = core::array::from_fn(|i| {
         let cfg = &IMU_CONFIGS[i];
-        let b = cfg.communication.multiplexer_bus;
-        let bus = match cfg.communication.multiplexer_bus {
+        let b_cfg = cfg.communication.multiplexer_bus;
+        let bus = match b_cfg {
         0 => &ch0_bus,
         1 => &ch1_bus,
         2 => &ch2_bus,
@@ -118,32 +102,27 @@ fn main() -> ! {
         5 => &ch5_bus,
         6 => &ch6_bus,
         7 => &ch7_bus,
-        _ => panic!("unsupported mux channel: {b}")
+        _ => panic!("unsupported mux channel: {b_cfg}")
         };
-        Icm20948::new_with_mount(
+        let mut s_cfg = Icm20948::new_with_mount(
             RefCellDevice::new(bus),
-            cfg.communication.sensor_addr,
+            cfg.communication.sensor_addr, // must be (false,false,false)
             cfg.pose.origin_f,
             cfg.pose.s2f,
-        )
+        );
+        s_cfg.set_accelerometer_scale(
+            cfg.accelerometer.scale
+        ).expect("failed to set accelerometer range");
+        s_cfg.set_gyroscope_scale(
+            cfg.gyroscope.scale
+        ).expect("failed to set gyroscope range");
+        s_cfg
     });
 
     let mut f = Filter::new(
         sensors
     );
-    
-    for s in 0..f.get_n_sensors() {
-        f.sensor(s).set_accelerometer_scale(0)
-            .expect("failed to set accelerometer range");
-        f.sensor(s).set_gyroscope_scale(0)
-            .expect("failed to set gyroscope range");
-        f.sensor(s).set_origin_f(Vector3::<f32>::new(0.0, 0.0, 0.01));
-        f.sensor(s).set_rotation_dcm_s2f(Matrix3::<f32>::new(  
-            1.0, 0.0, 0.0,
-            0.0, 1.0, 0.0,
-            0.0, 0.0, 1.0));
-    }
-    
+
     let mut led_buf = smart_led_buffer!(1);
     let mut led = SmartLedsAdapter::new(
         rmt.channel0, _peripherals.GPIO8, &mut led_buf);
@@ -157,14 +136,12 @@ fn main() -> ! {
     loop {
         led.write([color].into_iter()).unwrap();
         let loop_start = Instant::now();
-        // while delay_start.elapsed() < Duration::from_micros(loop_duration_us as u64) {}
 
         // Read all sensors
         f.read_all();
 
         // Estimate virtual measurements
         f.colocated_coaligned_avg();
-        // f.f_frame_avg();
 
         output.clear();
         write!(output,"{},",timestamp).ok();
