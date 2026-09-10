@@ -4,12 +4,15 @@ default:
 
 all: build pybuild
 
+clean:
+    cargo clean
+    cd fusion-py && cargo clean
+
 build:
     cargo build -p fimur -p icm20948 -p imu-traits --target riscv32imac-unknown-none-elf
 
 pybuild:
     cd fusion-py && maturin develop
 
-clean:
-    cargo clean
-    cd fusion-py && cargo clean
+run:
+    cargo run -p fimur --target riscv32imac-unknown-none-elf

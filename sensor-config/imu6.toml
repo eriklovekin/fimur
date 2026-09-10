@@ -1,6 +1,6 @@
 [communication]
-multiplexer_addr = "Default"
-multiplexer_bus = "i2c2"
+multiplexer_addr = [false,false,false]
+multiplexer_bus = 2
 sensor_addr = 0x69
 
 [accelerometer]
@@ -11,7 +11,8 @@ scale = 0
 
 [pose]
 s2f = [
-    [1, 0, 0],
-    [0, 1, 0],
-    [0, 0, 1]]
+    [1.0, 0.0, 0.0],
+    [0.0, 1.0, 0.0],
+    [0.0, 0.0, 1.0]
+    ]
 origin_f = [0.01,0.0,-0.023]

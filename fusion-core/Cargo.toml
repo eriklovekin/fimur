@@ -5,3 +5,8 @@ edition = "2024"
 
 [dependencies]
 nalgebra = { version = "0.35", default-features = false, features = ["libm","macros"] }
+
+[build-dependencies]
+toml = "1.1.5+spec-1.1.0"
+serde = "1.0.229"
+nalgebra = { version = "0.35", features = ["libm", "serde-serialize"] }

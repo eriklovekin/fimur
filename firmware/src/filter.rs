@@ -23,9 +23,9 @@ use nalgebra::{
     Vector3,
 };
 
-use fusion_core::{
-    FusionCore,
-};
+// use fusion_core::{
+//     FusionCore,
+// };
 
 const N_IMUS: usize = 10; // number of IMUs being used
 /// two sig figs and a comma
