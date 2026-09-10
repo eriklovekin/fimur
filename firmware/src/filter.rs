@@ -27,7 +27,10 @@ use nalgebra::{
 //     FusionCore,
 // };
 
-const N_IMUS: usize = 10; // number of IMUs being used
+use fusion_core::config::{
+    N_IMUS,
+};
+
 /// two sig figs and a comma
 const F32_SIZE: usize = 10;
 /// six floats and six commas for each IMU
