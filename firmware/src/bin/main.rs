@@ -112,10 +112,16 @@ fn main() -> ! {
         );
         s_cfg.set_accelerometer_scale(
             cfg.accelerometer.scale
-        ).expect("failed to set accelerometer range");
-        s_cfg.set_gyroscope_scale(
+        ).unwrap_or_else(|e| panic!(
+        "failed to set accelerometer range for sensor {}: {:?}",
+        i, e
+        ));
+    s_cfg.set_gyroscope_scale(
             cfg.gyroscope.scale
-        ).expect("failed to set gyroscope range");
+        ).unwrap_or_else(|e| panic!(
+        "failed to set gyroscope range for sensor {}: {:?}",
+        i, e
+        ));
         s_cfg
     });
 
